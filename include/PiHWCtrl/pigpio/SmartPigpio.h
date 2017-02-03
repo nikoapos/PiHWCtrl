@@ -26,7 +26,7 @@
 #define SMARTPIGPIO_H
 
 #include <exception>
-
+#include <memory>
 
 namespace PiHWCtrl {
 
@@ -37,11 +37,13 @@ class SmartPigpio {
   
 public:
   
-  SmartPigpio();
+  static std::shared_ptr<SmartPigpio> getSingleton();
   
   virtual ~SmartPigpio();
   
 private:
+  
+  SmartPigpio();
   
   int m_pigpio_version_number;
 

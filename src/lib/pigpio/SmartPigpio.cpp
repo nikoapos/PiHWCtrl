@@ -27,6 +27,11 @@
 
 namespace PiHWCtrl {
 
+std::shared_ptr<SmartPigpio> SmartPigpio::getSingleton() {
+  static std::shared_ptr<SmartPigpio> singleton = std::shared_ptr<SmartPigpio> {new SmartPigpio};
+  return singleton;
+}
+
 SmartPigpio::SmartPigpio() : m_pigpio_version_number(gpioInitialise()) {
   if (m_pigpio_version_number < 0) {
     throw PigpioInitFailed();
