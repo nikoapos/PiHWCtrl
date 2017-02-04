@@ -1,15 +1,19 @@
 #include <iostream>
-#include <PiHWCtrl/pigpio/SmartPigpio.h>
+#include <PiHWCtrl/pigpio/PigpioBinaryInput.h>
 
 #include<pigpio.h>
  
-int main(int argc, char *argv[]){
+using namespace PiHWCtrl;
+
+int main(int argc, char *argv[]) {
   
-  auto a = PiHWCtrl::SmartPigpio::getSingleton();
+  PigpioBinaryInput a {23};
+  PigpioBinaryInput b {21};
   
-  for (unsigned int i = 0; i < 32; ++i) {
-    std::cout << "GPIO " << i << " mode: " << gpioGetMode(i) << '\n';
-  }
+  gpioWrite(21, true);
+  
+  std::cout << "a is " << a.isOn() << '\n';
+  std::cout << "b is " << b.isOn() << '\n';
   
   return 0;
 }

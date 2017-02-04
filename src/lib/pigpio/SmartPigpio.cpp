@@ -23,6 +23,7 @@
  */
 
 #include <pigpio.h>
+#include <PiHWCtrl/pigpio/exceptions.h>
 #include <PiHWCtrl/pigpio/SmartPigpio.h>
 
 namespace PiHWCtrl {
@@ -36,10 +37,30 @@ SmartPigpio::SmartPigpio() : m_pigpio_version_number(gpioInitialise()) {
   if (m_pigpio_version_number < 0) {
     throw PigpioInitFailed();
   }
+  for (auto& flag : m_reserved_flags) {
+    flag = false;
+  }
 }
 
 SmartPigpio::~SmartPigpio() {
   gpioTerminate();
+}
+
+void SmartPigpio::reserveGpio(unsigned int gpio) {
+  if (gpio < 2 || gpio > 28) {
+    throw BadGpioNumber();
+  }
+  if (m_reserved_flags[gpio]) {
+    throw GpioAlreadyResearved();
+  }
+  m_reserved_flags[gpio] = true;
+}
+
+void SmartPigpio::releaseGpio(unsigned int gpio) {
+  if (gpio < 2 || gpio > 28) {
+    throw BadGpioNumber();
+  }
+  m_reserved_flags[gpio] = false;
 }
 
 } // end of namespace PiHWCtrl

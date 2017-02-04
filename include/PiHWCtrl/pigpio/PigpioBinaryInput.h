@@ -16,42 +16,36 @@
  */
 
 /* 
- * File:   SmartPigpio.h
+ * File:   PigpioBinaryInput.h
  * Author: nikoapos
  *
- * Created on February 3, 2017, 1:58 PM
+ * Created on February 3, 2017, 11:16 PM
  */
 
-#ifndef SMARTPIGPIO_H
-#define SMARTPIGPIO_H
+#include <PiHWCtrl/HWInterfaces/BinaryInput.h>
 
-#include <memory>
-#include <array>
+#ifndef PIGPIOBINARYINPUT_H
+#define PIGPIOBINARYINPUT_H
 
 namespace PiHWCtrl {
 
-class SmartPigpio {
+class PigpioBinaryInput : public BinaryInput {
   
 public:
   
-  static std::shared_ptr<SmartPigpio> getSingleton();
+  PigpioBinaryInput(unsigned int gpio);
   
-  virtual ~SmartPigpio();
+  virtual ~PigpioBinaryInput();
   
-  void reserveGpio(unsigned int gpio);
-  
-  void releaseGpio(unsigned int gpio);
+  bool isOn() override;
   
 private:
   
-  SmartPigpio();
-  
-  int m_pigpio_version_number;
-  std::array<bool, 29> m_reserved_flags;
+  unsigned int m_gpio;
 
 };
 
 } // end of namespace PiHWCtrl
 
-#endif /* SMARTPIGPIO_H */
+#endif /* PIGPIOBINARYINPUT_H */
 

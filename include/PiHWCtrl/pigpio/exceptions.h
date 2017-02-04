@@ -16,42 +16,28 @@
  */
 
 /* 
- * File:   SmartPigpio.h
- * Author: nikoapos
- *
- * Created on February 3, 2017, 1:58 PM
+ * @file exceptions.h
+ * @author nikoapos
  */
 
-#ifndef SMARTPIGPIO_H
-#define SMARTPIGPIO_H
+#ifndef EXCEPTIONS_H
+#define EXCEPTIONS_H
 
-#include <memory>
-#include <array>
+#include <exception>
 
 namespace PiHWCtrl {
 
-class SmartPigpio {
-  
-public:
-  
-  static std::shared_ptr<SmartPigpio> getSingleton();
-  
-  virtual ~SmartPigpio();
-  
-  void reserveGpio(unsigned int gpio);
-  
-  void releaseGpio(unsigned int gpio);
-  
-private:
-  
-  SmartPigpio();
-  
-  int m_pigpio_version_number;
-  std::array<bool, 29> m_reserved_flags;
+class UnknownPigpioException : public std::exception {};
 
-};
+class PigpioInitFailed : public std::exception {};
+
+class BadGpioNumber : public std::exception {};
+
+class BadGpioMode : public std::exception {};
+
+class GpioAlreadyResearved : public std::exception {};
 
 } // end of namespace PiHWCtrl
 
-#endif /* SMARTPIGPIO_H */
+#endif /* EXCEPTIONS_H */
 
