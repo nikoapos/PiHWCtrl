@@ -31,9 +31,9 @@ public:
   
   virtual ~BinaryInput() = default;
 
-  virtual bool isOn() = 0;
+  virtual bool isOn() const = 0;
   
-  virtual bool isOff() final;
+  virtual bool isOff() const final;
   
 };
 

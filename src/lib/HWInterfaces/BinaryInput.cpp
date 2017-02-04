@@ -24,7 +24,7 @@
 
 namespace PiHWCtrl {
 
-bool BinaryInput::isOff() {
+bool BinaryInput::isOff() const {
   return !isOn();
 }
 

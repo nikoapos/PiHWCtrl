@@ -45,7 +45,7 @@ PigpioBinaryInput::~PigpioBinaryInput() {
   SmartPigpio::getSingleton()->releaseGpio(m_gpio);
 }
 
-bool PigpioBinaryInput::isOn() {
+bool PigpioBinaryInput::isOn() const {
   return gpioRead(m_gpio);
 }
 

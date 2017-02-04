@@ -37,7 +37,7 @@ public:
   
   virtual ~PigpioBinaryInput();
   
-  bool isOn() override;
+  bool isOn() const override;
   
 private:
   
