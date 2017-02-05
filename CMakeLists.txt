@@ -11,6 +11,6 @@ include_directories(include)
 file(GLOB_RECURSE SOURCES "src/lib/*.cpp")
 add_library(pihwctrl SHARED ${SOURCES})
 
-add_executable(mytest src/program/test.cpp)
-target_link_libraries(mytest pihwctrl pigpio pthread)
-
+# Generate the example executables
+add_executable(FunWithLEDs src/examples/FunWithLEDs.cpp)
+target_link_libraries(FunWithLEDs pihwctrl pigpio pthread)

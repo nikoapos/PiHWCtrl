@@ -16,26 +16,27 @@
  */
 
 /* 
- * File:   PigpioBinaryInput.h
- * Author: nikoapos
- *
- * Created on February 3, 2017, 11:16 PM
+ * @file PigpioSwitch.h
+ * @author nikoapos
  */
 
-#ifndef PIGPIOBINARYINPUT_H
-#define PIGPIOBINARYINPUT_H
+#ifndef PIGPIOSWITCH_H
+#define PIGPIOSWITCH_H
 
+#include <PiHWCtrl/HWInterfaces/Switch.h>
 #include <PiHWCtrl/HWInterfaces/BinaryInput.h>
 
 namespace PiHWCtrl {
 
-class PigpioBinaryInput : public BinaryInput {
+class PigpioSwitch : public Switch, public BinaryInput {
   
 public:
+
+  PigpioSwitch(unsigned int m_gpio);
   
-  PigpioBinaryInput(unsigned int gpio);
-  
-  virtual ~PigpioBinaryInput();
+  virtual ~PigpioSwitch();
+
+  void set(bool value) override;
   
   bool isOn() const override;
   
@@ -47,5 +48,5 @@ private:
 
 } // end of namespace PiHWCtrl
 
-#endif /* PIGPIOBINARYINPUT_H */
+#endif /* PIGPIOSWITCH_H */
 

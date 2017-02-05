@@ -16,36 +16,20 @@
  */
 
 /* 
- * File:   PigpioBinaryInput.h
- * Author: nikoapos
- *
- * Created on February 3, 2017, 11:16 PM
+ * @file Switch.cpp
+ * @author nikoapos
  */
 
-#ifndef PIGPIOBINARYINPUT_H
-#define PIGPIOBINARYINPUT_H
-
-#include <PiHWCtrl/HWInterfaces/BinaryInput.h>
+#include <PiHWCtrl/HWInterfaces/Switch.h>
 
 namespace PiHWCtrl {
 
-class PigpioBinaryInput : public BinaryInput {
-  
-public:
-  
-  PigpioBinaryInput(unsigned int gpio);
-  
-  virtual ~PigpioBinaryInput();
-  
-  bool isOn() const override;
-  
-private:
-  
-  unsigned int m_gpio;
+void Switch::turnOn() {
+  set(true);
+}
 
-};
+void Switch::turnOff() {
+  set(false);
+}
 
-} // end of namespace PiHWCtrl
-
-#endif /* PIGPIOBINARYINPUT_H */
-
+} // end of namedpace PiHWCtrl
