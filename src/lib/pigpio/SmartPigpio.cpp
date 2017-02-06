@@ -51,7 +51,7 @@ void SmartPigpio::reserveGpio(unsigned int gpio) {
     throw BadGpioNumber();
   }
   if (m_reserved_flags[gpio]) {
-    throw GpioAlreadyResearved();
+    throw GpioAlreadyReserved();
   }
   m_reserved_flags[gpio] = true;
 }

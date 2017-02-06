@@ -35,7 +35,7 @@ class BadGpioNumber : public std::exception {};
 
 class BadGpioMode : public std::exception {};
 
-class GpioAlreadyResearved : public std::exception {};
+class GpioAlreadyReserved : public std::exception {};
 
 } // end of namespace PiHWCtrl
 

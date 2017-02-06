@@ -15,6 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * @file examples/PigpioBinaryInputExample.cpp
+ * @author nikoapos
+ */
+
 /* 
  * Description
  * -----------
@@ -24,8 +29,8 @@
  * binary input from one of the GPIO pins accessible via the 40 pin interface
  * (GPIOs 2-28). It interprets the input as following:
  * 
- *   - ON: 3.3 Volt connected to the pin
- *   - OFF: GND connected to the pin or the pin is open circuited
+ * - ON: 3.3 Volt connected to the pin
+ * - OFF: GND connected to the pin or the pin is open circuited
  * 
  * Under the hood, this class uses the pigpio library, so any program using it
  * must be executed with root privileges (sudo).
@@ -42,9 +47,6 @@
  * Execution:
  * Turn the switch off and run the example. Then turn the switch on and re-run
  * it. You should see terminal messages indicating the possition of the switch.
- * 
- * @file PigpioBinaryInputExample.cpp
- * @author nikoapos
  */
 
 #include <iostream> // for std::cout
