@@ -27,15 +27,36 @@
 
 namespace PiHWCtrl {
 
-class UnknownPigpioException : public std::exception {};
+class UnknownPigpioException : public std::exception {
+public:
+  UnknownPigpioException(int err_code) : exception(), err_code(err_code) {}
+  int err_code;
+};
 
-class PigpioInitFailed : public std::exception {};
+class PigpioInitFailed : public std::exception {
+public:
+  PigpioInitFailed(int err_code) : exception(), err_code(err_code) {}
+  int err_code;
+};
 
-class BadGpioNumber : public std::exception {};
+class BadGpioNumber : public std::exception {
+public:
+  BadGpioNumber(unsigned int gpio) : exception(), gpio(gpio) {}
+  unsigned int gpio;
+};
 
-class BadGpioMode : public std::exception {};
+class BadGpioMode : public std::exception {
+public:
+  BadGpioMode(unsigned int gpio, unsigned int mode) : exception(), gpio(gpio), mode(mode) {}
+  unsigned int gpio;
+  unsigned int mode;
+};
 
-class GpioAlreadyReserved : public std::exception {};
+class GpioAlreadyReserved : public std::exception {
+public:
+  GpioAlreadyReserved(unsigned int gpio) : exception(), gpio(gpio) {}
+  unsigned int gpio;
+};
 
 } // end of namespace PiHWCtrl
 

@@ -35,7 +35,7 @@ std::shared_ptr<SmartPigpio> SmartPigpio::getSingleton() {
 
 SmartPigpio::SmartPigpio() : m_pigpio_version_number(gpioInitialise()) {
   if (m_pigpio_version_number < 0) {
-    throw PigpioInitFailed();
+    throw PigpioInitFailed(m_pigpio_version_number);
   }
   for (auto& flag : m_reserved_flags) {
     flag = false;
@@ -48,17 +48,17 @@ SmartPigpio::~SmartPigpio() {
 
 void SmartPigpio::reserveGpio(unsigned int gpio) {
   if (gpio < 2 || gpio > 28) {
-    throw BadGpioNumber();
+    throw BadGpioNumber(gpio);
   }
   if (m_reserved_flags[gpio]) {
-    throw GpioAlreadyReserved();
+    throw GpioAlreadyReserved(gpio);
   }
   m_reserved_flags[gpio] = true;
 }
 
 void SmartPigpio::releaseGpio(unsigned int gpio) {
   if (gpio < 2 || gpio > 28) {
-    throw BadGpioNumber();
+    throw BadGpioNumber(gpio);
   }
   m_reserved_flags[gpio] = false;
 }

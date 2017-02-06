@@ -31,11 +31,11 @@ PigpioSwitch::PigpioSwitch(unsigned int m_gpio) : m_gpio(m_gpio) {
   SmartPigpio::getSingleton()->reserveGpio(m_gpio);
   auto res = gpioSetMode(m_gpio, PI_OUTPUT);
   if (res == PI_BAD_GPIO) {
-    throw BadGpioNumber();
+    throw BadGpioNumber(m_gpio);
   } else if (res == PI_BAD_MODE) {
-    throw BadGpioMode();
+    throw BadGpioMode(m_gpio, PI_OUTPUT);
   } else if (res != 0) {
-    throw UnknownPigpioException();
+    throw UnknownPigpioException(res);
   }
 }
 

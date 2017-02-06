@@ -33,11 +33,11 @@ PigpioBinaryInput::PigpioBinaryInput(unsigned int gpio) : m_gpio(gpio) {
   SmartPigpio::getSingleton()->reserveGpio(m_gpio);
   auto res = gpioSetMode(m_gpio, PI_INPUT);
   if (res == PI_BAD_GPIO) {
-    throw BadGpioNumber();
+    throw BadGpioNumber(m_gpio);
   } else if (res == PI_BAD_MODE) {
-    throw BadGpioMode();
+    throw BadGpioMode(m_gpio, PI_INPUT);
   } else if (res != 0) {
-    throw UnknownPigpioException();
+    throw UnknownPigpioException(res);
   }
 }
 
