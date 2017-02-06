@@ -11,6 +11,15 @@ include_directories(include)
 file(GLOB_RECURSE SOURCES "src/lib/*.cpp")
 add_library(pihwctrl SHARED ${SOURCES})
 
-# Generate the example executables
-add_executable(FunWithLEDs src/examples/FunWithLEDs.cpp)
-target_link_libraries(FunWithLEDs pihwctrl pigpio pthread)
+####################################
+# Generate the example executables #
+####################################
+
+# A function to simplify the calls
+function(add_example example_name)
+  add_executable(${example_name} src/examples/${example_name}.cpp)
+  target_link_libraries(${example_name} pihwctrl pigpio pthread)
+endfunction()
+
+add_example(PigpioBinaryInputExample)
+add_example(FunWithLEDs)
