@@ -25,14 +25,28 @@
 
 namespace PiHWCtrl {
 
+/**
+ * @class BinaryInput
+ * 
+ * @brief
+ * Interface representing a binary input
+ * 
+ * @details
+ * Binary input is anything that can have two states, ON and OFF. This interface
+ * defines methods for accessing this state.
+ */
 class BinaryInput {
   
 public:
   
+  /// Default destructor
   virtual ~BinaryInput() = default;
 
+  /// Must be implemented by the subclasses to return true if the state is ON
+  /// and false when the state is OFF
   virtual bool isOn() const = 0;
   
+  /// Implemented to return the opposite of isOn()
   virtual bool isOff() const final;
   
 };
