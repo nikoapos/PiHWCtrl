@@ -16,7 +16,7 @@
  */
 
 /* 
- * @file PigpioSwitch.h
+ * @file PiHWCtrl/pigpio/PigpioSwitch.h
  * @author nikoapos
  */
 
@@ -28,16 +28,61 @@
 
 namespace PiHWCtrl {
 
+/**
+ * @class PigpioSwitch
+ * 
+ * @brief
+ * Implemenation of the Switch interface using the pigpio library
+ * 
+ * @details
+ * This class can be used to control the GPIOs 2-28 of the 40 pin interface of
+ * the Raspberry Pi as ON (3.3 Volt) / OFF (GND) switches. The class also
+ * implements the BinaryInput interface so its current state can be retrieved
+ * from the code side.
+ * 
+ * Any program using this class must be executed with root privileges (sudo).
+ */
 class PigpioSwitch : public Switch, public BinaryInput {
   
 public:
 
-  PigpioSwitch(unsigned int m_gpio);
+  /**
+   * @brief Creates a PigipioSwitch for a specific GPIO pin
+   *
+   * @details
+   * After the constructor has finished the related pin mode is set to output.
+   * Note that this class can only be used for the GPIOs accessible via the 40
+   * pin interface (GPIOs 2-28).
+   *  
+   * @param gpio
+   *    The number of the GPIO to control with the switch
+   * 
+   * @throws GpioAlreadyResearved
+   *    If the requested GPIO is already reserved by another PiHWCtrl object
+   * @throws BadGpioNumber
+   *    If the given number is out of the range 2-28 or if the pigpio call
+   *    returns PI_BAD_GPIO
+   * @throws BadGpioMode
+   *    If the pigpio call returns PI_BAD_MODE
+   * @throws UnknownPigpioException
+   *    If the pigpio call returns any other error
+   */
+  PigpioSwitch(unsigned int gpio);
   
+  /**
+   * @brief Destructor of the PigpioSwitch
+   * 
+   * @details
+   * After the destructor is called the GPIO reserved by it is released and it
+   * can be used by other PiHWCtrl objects.
+   */
   virtual ~PigpioSwitch();
 
+  /// Sets the GPIO to ON (3.3 Volt) if the parameter is true or OFF (GRD) if
+  /// it is false.
   void set(bool value) override;
   
+  /// Returns true if the switch is set to ON and false if it is set to OFF.
   bool isOn() const override;
   
 private:

@@ -27,7 +27,7 @@
 
 namespace PiHWCtrl {
 
-PigpioSwitch::PigpioSwitch(unsigned int m_gpio) : m_gpio(m_gpio) {
+PigpioSwitch::PigpioSwitch(unsigned int gpio) : m_gpio(gpio) {
   SmartPigpio::getSingleton()->reserveGpio(m_gpio);
   auto res = gpioSetMode(m_gpio, PI_OUTPUT);
   if (res == PI_BAD_GPIO) {

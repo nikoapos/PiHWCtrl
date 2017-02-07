@@ -16,7 +16,7 @@
  */
 
 /* 
- * @file BinaryInput.h
+ * @file PiHWCtrl/HWInterfaces/BinaryInput.h
  * @author nikoapos
  */
 

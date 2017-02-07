@@ -40,7 +40,7 @@ namespace PiHWCtrl {
  * - ON: 3.3 Volt connected to the pin
  * - OFF: GND connected to the pin or the pin is open circuited
  * 
- * Any programs using this class must be executed with root privileges (sudo).
+ * Any program using this class must be executed with root privileges (sudo).
  */
 class PigpioBinaryInput : public BinaryInput {
   

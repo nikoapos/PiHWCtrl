@@ -16,7 +16,7 @@
  */
 
 /* 
- * @file Switch.h
+ * @file PiHWCtrl/HWInterfaces/Switch.h
  * @author nikoapos
  */
 
@@ -25,16 +25,31 @@
 
 namespace PiHWCtrl {
 
+/**
+ * @class Switch
+ * 
+ * @brief
+ * Interface representing a switch
+ * 
+ * @details
+ * A switch is anything that can be turned ON and OFF. This interface defines
+ * methods for setting these two states.
+ */
 class Switch {
   
 public:
   
+  /// Default destructor
   virtual ~Switch() = default;
   
+  /// Must be implemented by the subclasses to set the switch state to ON when
+  /// it is called with true and to OFF when it is called with false.
   virtual void set(bool value) = 0;
   
+  /// Turns the switch ON
   virtual void turnOn() final;
   
+  /// Turns the switch OFF
   virtual void turnOff() final;
   
 };
