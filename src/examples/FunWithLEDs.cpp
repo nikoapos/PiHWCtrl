@@ -16,20 +16,64 @@
  */
 
 /* 
- * @file FunWithLEDs.cpp
+ * @file examples/FunWithLEDs.cpp
  * @author nikoapos
  */
 
-#include <vector>
-#include <chrono>
-#include <thread>
-#include <PiHWCtrl/pigpio/PigpioBinaryInput.h>
-#include <PiHWCtrl/pigpio/PigpioSwitch.h>
+/*
+ * Description
+ * -----------
+ * 
+ * This example controls a row of 5 LED lights, having 1 LED on at each time,
+ * moving from left to right and back. A switch is used as input to show or not
+ * the light.
+ * 
+ * This example must be executed with root privileges (sudo).
+ * 
+ * Hardware implementation
+ * -----------------------
+ * Materials:
+ *   - A switch
+ *   - 5 LEDs (with forward voltage less than 3.3 Volt)
+ *   - 5 330 ohm resistors (if you want to properly calculate their value see
+ *     here: http://www.evilmadscientist.com/2012/resistors-for-leds)
+ * 
+ * Connections:
+ *   Switch
+ *   - Connect the GPIO-21 pin to the one side of the switch
+ *   - Connect a 3.3 Volt pin to the other side of the switch
+ *   LEDs
+ *   - Connect the GPIO-16 pin to the anode of the LED (longer leg)
+ *   - Connect the cathode of the LED (shorter leg) to the one side of the
+ *     resistor
+ *   - Connect the other side of the resistor to the ground (GND)
+ *   - Repeat the last three steps for the GPIOs 5, 25, 22 and 4
+ *   - Take care that your LEDs are positioned physically at the correct order:
+ *         LED:  1  2  3  4  5
+ *        GPIO: 16  5 25 22  4
+ *   
+ * Execution:
+ * Run the example. When the switch is OFF all LEDs should be OFF. When you turn
+ * on the switch the LEDs should light from left to right and back. Try to play
+ * by turning the switch on and off again.
+ */
+
+#include <vector> // for std::vector
+#include <chrono> // for std::chrono_literals
+#include <thread> // for std::this_thread
+#include <PiHWCtrl/pigpio/PigpioBinaryInput.h> // for PigpioBinaryInput
+#include <PiHWCtrl/pigpio/PigpioSwitch.h> // for PigpioSwitch
+
+// We introduce the symbols from std::chrono_literals so we can write time
+// like 500ms (500 milliseconds)
+using namespace std::chrono_literals;
 
 int main() {
   
-  PiHWCtrl::PigpioBinaryInput on_off {18};
+  // Create the object we will use to check if the switch is on or off
+  PiHWCtrl::PigpioBinaryInput on_off {21};
   
+  // Create a vector with the controllers for the GPIOs 16, 5, 25, 22 and 4
   std::vector<PiHWCtrl::PigpioSwitch> leds {};
   leds.emplace_back(16);
   leds.emplace_back(5);
@@ -37,29 +81,35 @@ int main() {
   leds.emplace_back(22);
   leds.emplace_back(4);
   
+  // The i identifies the index of the current LED in the vector
   unsigned int i = 0;
+  
+  // The direction of the movement on the LED vector
   int direction = 1;
   
+  // Start an infinite loop
   for (;;) {
+    
     // First turn off all the LEDs
     for (auto& led : leds) {
       led.turnOff();
     }
     
-    // Move i to the next LED
+    // Move i to the next LED in the direction we are moving
     i += direction;
+    // If we are out of the vector bounds change the direction and move the i
+    // at the opposite direction
     if (i == -1 || i == leds.size()) {
       direction = -1 * direction;
       i += 2 * direction;
     }
     
-    // If the input is on, light the LED at position i
+    // If the switch is on, light the LED at position i, otherwise let it off
     if (on_off.isOn()) {
       leds[i].turnOn();
     }
     
     // Sleep for 100 ms
-    using namespace std::chrono_literals;
     std::this_thread::sleep_for(100ms);
   }
   
