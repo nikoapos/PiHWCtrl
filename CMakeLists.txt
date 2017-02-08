@@ -22,4 +22,5 @@ function(add_example example_name)
 endfunction()
 
 add_example(PigpioBinaryInputExample)
+add_example(PigpioSwitchExample)
 add_example(FunWithLEDs)

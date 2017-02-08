@@ -46,7 +46,7 @@
  * 
  * Execution:
  * Turn the switch off and run the example. Then turn the switch on and re-run
- * it. You should see terminal messages indicating the possition of the switch.
+ * it. You should see terminal messages indicating the position of the switch.
  */
 
 #include <iostream> // for std::cout
@@ -55,7 +55,7 @@
 int main() {
   
   // Create an object for getting binary input from the GPIO 21. This object
-  // implements the PhHWCtrl::BinaryInput interface, so it can be used with any
+  // implements the PiHWCtrl::BinaryInput interface, so it can be used with any
   // function expecting the interface.
   PiHWCtrl::PigpioBinaryInput input {21};
   
