@@ -29,6 +29,8 @@ endfunction()
 add_example(PigpioBinaryInputExample)
 add_example(PigpioSwitchExample)
 add_example(FunWithLEDs)
+add_example(PigpioPWMExample)
+add_example(FunWithLEDsPWM)
 
 
 ###########################
