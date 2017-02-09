@@ -22,8 +22,8 @@
  * Created on February 3, 2017, 1:58 PM
  */
 
-#ifndef SMARTPIGPIO_H
-#define SMARTPIGPIO_H
+#ifndef PIHWCTRL_SMARTPIGPIO_H
+#define PIHWCTRL_SMARTPIGPIO_H
 
 #include <memory>
 #include <array>
@@ -53,5 +53,5 @@ private:
 
 } // end of namespace PiHWCtrl
 
-#endif /* SMARTPIGPIO_H */
+#endif /* PIHWCTRL_SMARTPIGPIO_H */
 

@@ -20,8 +20,8 @@
  * @author nikoapos
  */
 
-#ifndef SWITCH_H
-#define SWITCH_H
+#ifndef PIHWCTRL_SWITCH_H
+#define PIHWCTRL_SWITCH_H
 
 namespace PiHWCtrl {
 
@@ -56,5 +56,5 @@ public:
 
 } // end of namespace PiHWCtrl
 
-#endif /* SWITCH_H */
+#endif /* PIHWCTRL_SWITCH_H */
 

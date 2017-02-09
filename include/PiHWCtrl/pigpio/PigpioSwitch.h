@@ -20,8 +20,8 @@
  * @author nikoapos
  */
 
-#ifndef PIGPIOSWITCH_H
-#define PIGPIOSWITCH_H
+#ifndef PIHWCTRL_PIGPIOSWITCH_H
+#define PIHWCTRL_PIGPIOSWITCH_H
 
 #include <PiHWCtrl/HWInterfaces/Switch.h>
 #include <PiHWCtrl/HWInterfaces/BinaryInput.h>
@@ -93,5 +93,5 @@ private:
 
 } // end of namespace PiHWCtrl
 
-#endif /* PIGPIOSWITCH_H */
+#endif /* PIHWCTRL_PIGPIOSWITCH_H */
 

@@ -20,8 +20,8 @@
  * @author nikoapos
  */
 
-#ifndef BINARYINPUT_H
-#define BINARYINPUT_H
+#ifndef PIHWCTRL_BINARYINPUT_H
+#define PIHWCTRL_BINARYINPUT_H
 
 namespace PiHWCtrl {
 
@@ -53,5 +53,5 @@ public:
 
 } // end of namespace PiHWCtrl
 
-#endif /* BINARYINPUT_H */
+#endif /* PIHWCTRL_BINARYINPUT_H */
 

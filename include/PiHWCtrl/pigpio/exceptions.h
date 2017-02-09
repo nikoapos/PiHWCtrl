@@ -20,8 +20,8 @@
  * @author nikoapos
  */
 
-#ifndef EXCEPTIONS_H
-#define EXCEPTIONS_H
+#ifndef PIHWCTRL_PIGPIO_EXCEPTIONS_H
+#define PIHWCTRL_PIGPIO_EXCEPTIONS_H
 
 #include <exception>
 
@@ -60,5 +60,5 @@ public:
 
 } // end of namespace PiHWCtrl
 
-#endif /* EXCEPTIONS_H */
+#endif /* PIHWCTRL_PIGPIO_EXCEPTIONS_H */
 

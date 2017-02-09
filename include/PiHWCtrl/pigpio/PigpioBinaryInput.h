@@ -20,8 +20,8 @@
  * @author nikoapos
  */
 
-#ifndef PIGPIOBINARYINPUT_H
-#define PIGPIOBINARYINPUT_H
+#ifndef PIHWCTRL_PIGPIOBINARYINPUT_H
+#define PIHWCTRL_PIGPIOBINARYINPUT_H
 
 #include <PiHWCtrl/HWInterfaces/BinaryInput.h>
 
@@ -89,5 +89,5 @@ private:
 
 } // end of namespace PiHWCtrl
 
-#endif /* PIGPIOBINARYINPUT_H */
+#endif /* PIHWCTRL_PIGPIOBINARYINPUT_H */
 
