@@ -58,6 +58,26 @@ public:
   unsigned int gpio;
 };
 
+class BadPWMDutyRange : public std::exception {
+public:
+  BadPWMDutyRange(unsigned int gpio, unsigned int range) : exception(), gpio(gpio), range(range) {}
+  unsigned int gpio;
+  unsigned int range;
+};
+
+class BadPWMDutyCycle : public std::exception {
+public:
+  BadPWMDutyCycle(unsigned int gpio, unsigned int duty_cycle) : exception(), gpio(gpio), duty_cycle(duty_cycle) {}
+  unsigned int gpio;
+  unsigned int duty_cycle;
+};
+
+class NotPWMGpio : public std::exception {
+public:
+  NotPWMGpio(unsigned int gpio) : exception(), gpio(gpio) {}
+  unsigned int gpio;
+};
+
 } // end of namespace PiHWCtrl
 
 #endif /* PIHWCTRL_PIGPIO_EXCEPTIONS_H */
