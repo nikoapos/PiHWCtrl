@@ -84,7 +84,7 @@ void PigpioPWM::setDutyCycle(float duty_cycle) {
   if (res == PI_BAD_USER_GPIO) {
     throw BadGpioNumber(m_gpio);
   } else if (res == PI_BAD_DUTYCYCLE) {
-    throw BadPWMDutyCycle(m_gpio, int_duty_cycle);
+    throw BadPWMDutyCycle(m_gpio, duty_cycle);
   } else if (res != 0) {
     throw UnknownPigpioException(res);
   }

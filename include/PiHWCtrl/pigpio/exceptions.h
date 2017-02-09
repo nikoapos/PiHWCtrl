@@ -23,58 +23,90 @@
 #ifndef PIHWCTRL_PIGPIO_EXCEPTIONS_H
 #define PIHWCTRL_PIGPIO_EXCEPTIONS_H
 
-#include <exception>
+#include <PiHWCtrl/HWInterfaces/exceptions.h>
 
 namespace PiHWCtrl {
 
-class UnknownPigpioException : public std::exception {
+class UnknownPigpioException : public Exception {
 public:
-  UnknownPigpioException(int err_code) : exception(), err_code(err_code) {}
+  UnknownPigpioException(int err_code) : err_code(err_code) {
+    appendMessage("Unknown PIGPIO exception with code ");
+    appendMessage(err_code);
+  }
   int err_code;
 };
 
-class PigpioInitFailed : public std::exception {
+class PigpioInitFailed : public Exception {
 public:
-  PigpioInitFailed(int err_code) : exception(), err_code(err_code) {}
+  PigpioInitFailed(int err_code) : err_code(err_code) {
+    appendMessage("PIGPIO initialization failed with code ");
+    appendMessage(err_code);
+  }
   int err_code;
 };
 
-class BadGpioNumber : public std::exception {
+class BadGpioNumber : public Exception {
 public:
-  BadGpioNumber(unsigned int gpio) : exception(), gpio(gpio) {}
+  BadGpioNumber(unsigned int gpio) : gpio(gpio) {
+    appendMessage("Bad GPIO number ");
+    appendMessage(gpio);
+  }
   unsigned int gpio;
 };
 
-class BadGpioMode : public std::exception {
+class BadGpioMode : public Exception {
 public:
-  BadGpioMode(unsigned int gpio, unsigned int mode) : exception(), gpio(gpio), mode(mode) {}
+  BadGpioMode(unsigned int gpio, unsigned int mode) : gpio(gpio), mode(mode) {
+    appendMessage("Bad GPIO mode: GPIO = ");
+    appendMessage(gpio);
+    appendMessage(", mode = ");
+    appendMessage(mode);
+  }
   unsigned int gpio;
   unsigned int mode;
 };
 
-class GpioAlreadyReserved : public std::exception {
+class GpioAlreadyReserved : public Exception {
 public:
-  GpioAlreadyReserved(unsigned int gpio) : exception(), gpio(gpio) {}
+  GpioAlreadyReserved(unsigned int gpio) : gpio(gpio) {
+    appendMessage("GPIO ");
+    appendMessage(gpio);
+    appendMessage(" already reserved");
+  }
   unsigned int gpio;
 };
 
-class BadPWMDutyRange : public std::exception {
+class BadPWMDutyRange : public Exception {
 public:
-  BadPWMDutyRange(unsigned int gpio, unsigned int range) : exception(), gpio(gpio), range(range) {}
+  BadPWMDutyRange(unsigned int gpio, unsigned int range) : gpio(gpio), range(range) {
+    appendMessage("Bad PWM duty range: GPIO = ");
+    appendMessage(gpio);
+    appendMessage(", range = ");
+    appendMessage(range);
+  }
   unsigned int gpio;
   unsigned int range;
 };
 
-class BadPWMDutyCycle : public std::exception {
+class BadPWMDutyCycle : public Exception {
 public:
-  BadPWMDutyCycle(unsigned int gpio, unsigned int duty_cycle) : exception(), gpio(gpio), duty_cycle(duty_cycle) {}
+  BadPWMDutyCycle(unsigned int gpio, float duty_cycle) : gpio(gpio), duty_cycle(duty_cycle) {
+    appendMessage("Bad PWM duty cycle: GPIO = ");
+    appendMessage(gpio);
+    appendMessage(", duty cycle = ");
+    appendMessage(duty_cycle);
+  }
   unsigned int gpio;
-  unsigned int duty_cycle;
+  float duty_cycle;
 };
 
-class NotPWMGpio : public std::exception {
+class NotPWMGpio : public Exception {
 public:
-  NotPWMGpio(unsigned int gpio) : exception(), gpio(gpio) {}
+  NotPWMGpio(unsigned int gpio) : gpio(gpio) {
+    appendMessage("GPIO ");
+    appendMessage(gpio);
+    appendMessage(" is not a setup for PWM");
+  }
   unsigned int gpio;
 };
 
