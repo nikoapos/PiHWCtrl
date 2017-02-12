@@ -27,7 +27,7 @@
 
 namespace PiHWCtrl {
 
-PigpioPWM::PigpioPWM(unsigned int gpio, unsigned int frequency) : m_gpio(gpio) {
+PigpioPWM::PigpioPWM(int gpio, unsigned int frequency) : m_gpio(gpio) {
   // Reserve the GPIO so no other class can use it
   SmartPigpio::getSingleton()->reserveGpio(m_gpio);
   
@@ -68,12 +68,40 @@ PigpioPWM::PigpioPWM(unsigned int gpio, unsigned int frequency) : m_gpio(gpio) {
   
 }
 
+PigpioPWM::PigpioPWM(PigpioPWM&& other) : m_gpio(other.m_gpio) {
+  // Make the other object to not have control of the GPIO
+  other.m_gpio = -1;
+}
+
+namespace {
+
+void cleanup(int gpio) {
+  if (gpio != -1) {
+    // We turn off the PWM
+    gpioPWM(gpio, 0);
+    // We release the GPIO
+    SmartPigpio::getSingleton()->releaseGpio(gpio);
+  }
+}
+
+} // end of anonymous namespace
+
+PigpioPWM& PigpioPWM::operator=(PigpioPWM&& other) {
+  // We will stop using the current GPIO, so clean it up
+  cleanup(m_gpio);
+  // Now take over the GPIO of the other
+  m_gpio = other.m_gpio;
+  other.m_gpio = -1;
+}
+
 PigpioPWM::~PigpioPWM() {
-  // We turn off the PWM
-  gpioPWM(m_gpio, 0);
+  cleanup(m_gpio);
 }
 
 void PigpioPWM::setDutyCycle(float duty_cycle) {
+  if (m_gpio == -1) {
+    throw BadGpioNumber(m_gpio);
+  }
   float range = gpioGetPWMrange(m_gpio);
   if (range == PI_BAD_USER_GPIO) {
     throw BadGpioNumber(m_gpio);
@@ -92,6 +120,9 @@ void PigpioPWM::setDutyCycle(float duty_cycle) {
 }
 
 float PigpioPWM::getDutyCycle() {
+  if (m_gpio == -1) {
+    throw BadGpioNumber(m_gpio);
+  }
   float range = gpioGetPWMrange(m_gpio);
   if (range == PI_BAD_USER_GPIO) {
     throw BadGpioNumber(m_gpio);

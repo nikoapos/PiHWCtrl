@@ -38,9 +38,9 @@ public:
   
   virtual ~SmartPigpio();
   
-  void reserveGpio(unsigned int gpio);
+  void reserveGpio(int gpio);
   
-  void releaseGpio(unsigned int gpio);
+  void releaseGpio(int gpio);
   
 private:
   

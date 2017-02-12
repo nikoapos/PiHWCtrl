@@ -88,7 +88,15 @@ public:
    * @throws UnknownPigpioException
    *    If the pigpio call returns any other error
    */
-  PigpioPWM(unsigned int gpio, unsigned int frequency=800);
+  PigpioPWM(int gpio, unsigned int frequency=800);
+  
+  // A PigpioPWM represents a physical GPIO, so it cannot be copied
+  PigpioPWM(const PigpioPWM& other) = delete;
+  PigpioPWM& operator=(const PigpioPWM& right) = delete;
+  
+  // Moving is OK. The old object will not manage the GPIO any more.
+  PigpioPWM(PigpioPWM&& other);
+  PigpioPWM& operator=(PigpioPWM&& other);
 
   /// The destructor will turn off the PWM
   virtual ~PigpioPWM();
@@ -126,7 +134,7 @@ public:
   
 private:
   
-  unsigned int m_gpio;
+  int m_gpio = -1;
   
 };
 

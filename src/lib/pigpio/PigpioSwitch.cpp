@@ -27,7 +27,7 @@
 
 namespace PiHWCtrl {
 
-PigpioSwitch::PigpioSwitch(unsigned int gpio) : m_gpio(gpio) {
+PigpioSwitch::PigpioSwitch(int gpio) : m_gpio(gpio) {
   SmartPigpio::getSingleton()->reserveGpio(m_gpio);
   auto res = gpioSetMode(m_gpio, PI_OUTPUT);
   if (res == PI_BAD_GPIO) {
@@ -39,16 +39,45 @@ PigpioSwitch::PigpioSwitch(unsigned int gpio) : m_gpio(gpio) {
   }
 }
 
+PigpioSwitch::PigpioSwitch(PigpioSwitch&& other) : m_gpio(other.m_gpio) {
+  // Make the other object to not have control of the GPIO
+  other.m_gpio = -1;
+}
+
+namespace {
+
+void cleanup(int gpio) {
+  if (gpio != -1) {
+    SmartPigpio::getSingleton()->releaseGpio(gpio);
+  }
+}
+
+} // end of anonymous namespace
+
+PigpioSwitch& PigpioSwitch::operator=(PigpioSwitch&& other) {
+  // We will stop using the current GPIO, so clean it up
+  cleanup(m_gpio);
+  // Now take over the GPIO of the other
+  m_gpio = other.m_gpio;
+  other.m_gpio = -1;
+}
+
 PigpioSwitch::~PigpioSwitch() {
-  SmartPigpio::getSingleton()->releaseGpio(m_gpio);
+  cleanup(m_gpio);
 }
 
 void PigpioSwitch::set(bool value) {
+  if (m_gpio == -1) {
+    throw BadGpioNumber(m_gpio);
+  }
   unsigned int level = value ? 1 : 0;
   gpioWrite(m_gpio, level);
 }
 
 bool PigpioSwitch::isOn() const {
+  if (m_gpio == -1) {
+    throw BadGpioNumber(m_gpio);
+  }
   return gpioRead(m_gpio);
 }
 

@@ -67,7 +67,15 @@ public:
    * @throws UnknownPigpioException
    *    If the pigpio call returns any other error
    */
-  PigpioBinaryInput(unsigned int gpio);
+  PigpioBinaryInput(int gpio);
+  
+  // A PigpioBinaryInput represents a physical GPIO, so it cannot be copied
+  PigpioBinaryInput(const PigpioBinaryInput& other) = delete;
+  PigpioBinaryInput& operator=(const PigpioBinaryInput& right) = delete;
+  
+  // Moving is OK. The old object will not manage the GPIO any more.
+  PigpioBinaryInput(PigpioBinaryInput&& other);
+  PigpioBinaryInput& operator=(PigpioBinaryInput&& other);
   
   /**
    * @brief Destructor of the PigpioBinaryInput
@@ -83,7 +91,7 @@ public:
   
 private:
   
-  unsigned int m_gpio;
+  int m_gpio = -1;
 
 };
 

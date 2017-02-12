@@ -67,7 +67,15 @@ public:
    * @throws UnknownPigpioException
    *    If the pigpio call returns any other error
    */
-  PigpioSwitch(unsigned int gpio);
+  PigpioSwitch(int gpio);
+  
+  // A PigpioSwitch represents a physical GPIO, so it cannot be copied
+  PigpioSwitch(const PigpioSwitch& other) = delete;
+  PigpioSwitch& operator=(const PigpioSwitch& right) = delete;
+  
+  // Moving is OK. The old object will not manage the GPIO any more.
+  PigpioSwitch(PigpioSwitch&& other);
+  PigpioSwitch& operator=(PigpioSwitch&& other);
   
   /**
    * @brief Destructor of the PigpioSwitch
@@ -87,7 +95,7 @@ public:
   
 private:
   
-  unsigned int m_gpio;
+  int m_gpio;
 
 };
 
