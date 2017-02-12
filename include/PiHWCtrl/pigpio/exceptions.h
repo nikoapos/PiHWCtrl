@@ -45,69 +45,50 @@ public:
   int err_code;
 };
 
-class BadGpioNumber : public Exception {
-public:
-  BadGpioNumber(unsigned int gpio) : gpio(gpio) {
-    appendMessage("Bad GPIO number ");
-    appendMessage(gpio);
-  }
-  unsigned int gpio;
-};
-
 class BadGpioMode : public Exception {
 public:
-  BadGpioMode(unsigned int gpio, unsigned int mode) : gpio(gpio), mode(mode) {
+  BadGpioMode(int gpio, unsigned int mode) : gpio(gpio), mode(mode) {
     appendMessage("Bad GPIO mode: GPIO = ");
     appendMessage(gpio);
     appendMessage(", mode = ");
     appendMessage(mode);
   }
-  unsigned int gpio;
+  int gpio;
   unsigned int mode;
-};
-
-class GpioAlreadyReserved : public Exception {
-public:
-  GpioAlreadyReserved(unsigned int gpio) : gpio(gpio) {
-    appendMessage("GPIO ");
-    appendMessage(gpio);
-    appendMessage(" already reserved");
-  }
-  unsigned int gpio;
 };
 
 class BadPWMDutyRange : public Exception {
 public:
-  BadPWMDutyRange(unsigned int gpio, unsigned int range) : gpio(gpio), range(range) {
+  BadPWMDutyRange(int gpio, unsigned int range) : gpio(gpio), range(range) {
     appendMessage("Bad PWM duty range: GPIO = ");
     appendMessage(gpio);
     appendMessage(", range = ");
     appendMessage(range);
   }
-  unsigned int gpio;
+  int gpio;
   unsigned int range;
 };
 
 class BadPWMDutyCycle : public Exception {
 public:
-  BadPWMDutyCycle(unsigned int gpio, float duty_cycle) : gpio(gpio), duty_cycle(duty_cycle) {
+  BadPWMDutyCycle(int gpio, float duty_cycle) : gpio(gpio), duty_cycle(duty_cycle) {
     appendMessage("Bad PWM duty cycle: GPIO = ");
     appendMessage(gpio);
     appendMessage(", duty cycle = ");
     appendMessage(duty_cycle);
   }
-  unsigned int gpio;
+  int gpio;
   float duty_cycle;
 };
 
 class NotPWMGpio : public Exception {
 public:
-  NotPWMGpio(unsigned int gpio) : gpio(gpio) {
+  NotPWMGpio(int gpio) : gpio(gpio) {
     appendMessage("GPIO ");
     appendMessage(gpio);
     appendMessage(" is not a setup for PWM");
   }
-  unsigned int gpio;
+  int gpio;
 };
 
 } // end of namespace PiHWCtrl

@@ -24,6 +24,7 @@
 #define PIHWCTRL_PIGPIOBINARYINPUT_H
 
 #include <PiHWCtrl/HWInterfaces/BinaryInput.h>
+#include <PiHWCtrl/pigpio/SmartPigpio.h>
 
 namespace PiHWCtrl {
 
@@ -92,6 +93,9 @@ public:
 private:
   
   int m_gpio = -1;
+  // We keep a pointer to the SmartPigpio singleton to guarantee that it is
+  // initialized and not deleted for the lifetime of the object
+  std::shared_ptr<SmartPigpio> m_smart_pigpio = SmartPigpio::getSingleton();
 
 };
 

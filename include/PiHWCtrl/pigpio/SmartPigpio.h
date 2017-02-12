@@ -38,10 +38,6 @@ public:
   
   virtual ~SmartPigpio();
   
-  void reserveGpio(int gpio);
-  
-  void releaseGpio(int gpio);
-  
 private:
   
   SmartPigpio();

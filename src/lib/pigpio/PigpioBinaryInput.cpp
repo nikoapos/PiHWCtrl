@@ -23,14 +23,14 @@
  */
 
 #include <pigpio.h>
-#include <PiHWCtrl/pigpio/SmartPigpio.h>
+#include <PiHWCtrl/utils/GpioManager.h>
 #include <PiHWCtrl/pigpio/exceptions.h>
 #include <PiHWCtrl/pigpio/PigpioBinaryInput.h>
 
 namespace PiHWCtrl {
 
 PigpioBinaryInput::PigpioBinaryInput(int gpio) : m_gpio(gpio) {
-  SmartPigpio::getSingleton()->reserveGpio(m_gpio);
+  GpioManager::getSingleton()->reserveGpio(m_gpio);
   auto res = gpioSetMode(m_gpio, PI_INPUT);
   if (res == PI_BAD_GPIO) {
     throw BadGpioNumber(m_gpio);
@@ -50,7 +50,7 @@ namespace {
 
 void cleanup(int gpio) {
   if (gpio != -1) {
-    SmartPigpio::getSingleton()->releaseGpio(gpio);
+    GpioManager::getSingleton()->releaseGpio(gpio);
   }
 }
 

@@ -16,35 +16,35 @@
  */
 
 /* 
- * File:   SmartPigpio.cpp
- * Author: nikoapos
- * 
- * Created on February 3, 2017, 1:58 PM
+ * @file utils/GpioManager.cpp
+ * @author nikoapos
  */
 
-#include <pigpio.h>
-#include <PiHWCtrl/pigpio/exceptions.h>
-#include <PiHWCtrl/pigpio/SmartPigpio.h>
+#include <PiHWCtrl/HWInterfaces/exceptions.h>
+#include <PiHWCtrl/utils/GpioManager.h>
 
 namespace PiHWCtrl {
 
-std::shared_ptr<SmartPigpio> SmartPigpio::getSingleton() {
-  static std::shared_ptr<SmartPigpio> singleton = std::shared_ptr<SmartPigpio> {new SmartPigpio};
+std::shared_ptr<GpioManager> GpioManager::getSingleton() {
+  static std::shared_ptr<GpioManager> singleton = std::shared_ptr<GpioManager>(new GpioManager{});
   return singleton;
 }
 
-SmartPigpio::SmartPigpio() : m_pigpio_version_number(gpioInitialise()) {
-  if (m_pigpio_version_number < 0) {
-    throw PigpioInitFailed(m_pigpio_version_number);
+void GpioManager::reserveGpio(int gpio) {
+  if (gpio < 2 || gpio > 28) {
+    throw BadGpioNumber(gpio);
   }
-  for (auto& flag : m_reserved_flags) {
-    flag = false;
+  if (m_reserved_flags[gpio]) {
+    throw GpioAlreadyReserved(gpio);
   }
+  m_reserved_flags[gpio] = true;
 }
 
-SmartPigpio::~SmartPigpio() {
-  gpioTerminate();
+void GpioManager::releaseGpio(int gpio) {
+  if (gpio < 2 || gpio > 28) {
+    throw BadGpioNumber(gpio);
+  }
+  m_reserved_flags[gpio] = false;
 }
 
 } // end of namespace PiHWCtrl
-

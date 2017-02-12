@@ -56,6 +56,25 @@ auto operator<<(Ex&& ex, const T& message) -> decltype(std::forward<Ex>(ex)) {
   return std::forward<Ex>(ex);
 }
 
+class BadGpioNumber : public Exception {
+public:
+  BadGpioNumber(int gpio) : gpio(gpio) {
+    appendMessage("Bad GPIO number ");
+    appendMessage(gpio);
+  }
+  int gpio;
+};
+
+class GpioAlreadyReserved : public Exception {
+public:
+  GpioAlreadyReserved(int gpio) : gpio(gpio) {
+    appendMessage("GPIO ");
+    appendMessage(gpio);
+    appendMessage(" already reserved");
+  }
+  int gpio;
+};
+
 } // end of namespace PiHWCtrl
 
 #endif /* PIHWCTRL_EXCEPTIONS_H */

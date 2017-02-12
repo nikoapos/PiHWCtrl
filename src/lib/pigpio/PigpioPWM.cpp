@@ -21,7 +21,7 @@
  */
 
 #include <pigpio.h>
-#include <PiHWCtrl/pigpio/SmartPigpio.h>
+#include <PiHWCtrl/utils/GpioManager.h>
 #include <PiHWCtrl/pigpio/exceptions.h>
 #include <PiHWCtrl/pigpio/PigpioPWM.h>
 
@@ -29,7 +29,7 @@ namespace PiHWCtrl {
 
 PigpioPWM::PigpioPWM(int gpio, unsigned int frequency) : m_gpio(gpio) {
   // Reserve the GPIO so no other class can use it
-  SmartPigpio::getSingleton()->reserveGpio(m_gpio);
+  GpioManager::getSingleton()->reserveGpio(m_gpio);
   
   // First we set the PWM frequency
   auto res = gpioSetPWMfrequency(m_gpio, frequency);
@@ -80,7 +80,7 @@ void cleanup(int gpio) {
     // We turn off the PWM
     gpioPWM(gpio, 0);
     // We release the GPIO
-    SmartPigpio::getSingleton()->releaseGpio(gpio);
+    GpioManager::getSingleton()->releaseGpio(gpio);
   }
 }
 

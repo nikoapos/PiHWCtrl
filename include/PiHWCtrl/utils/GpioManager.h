@@ -16,35 +16,39 @@
  */
 
 /* 
- * File:   SmartPigpio.cpp
- * Author: nikoapos
- * 
- * Created on February 3, 2017, 1:58 PM
+ * @file utils/GpioManager.h
+ * @author nikoapos
  */
 
-#include <pigpio.h>
-#include <PiHWCtrl/pigpio/exceptions.h>
-#include <PiHWCtrl/pigpio/SmartPigpio.h>
+#ifndef PIHECTRL_GPIOMANAGER_H
+#define PIHECTRL_GPIOMANAGER_H
+
+#include <array>
+#include <memory>
 
 namespace PiHWCtrl {
 
-std::shared_ptr<SmartPigpio> SmartPigpio::getSingleton() {
-  static std::shared_ptr<SmartPigpio> singleton = std::shared_ptr<SmartPigpio> {new SmartPigpio};
-  return singleton;
-}
-
-SmartPigpio::SmartPigpio() : m_pigpio_version_number(gpioInitialise()) {
-  if (m_pigpio_version_number < 0) {
-    throw PigpioInitFailed(m_pigpio_version_number);
-  }
-  for (auto& flag : m_reserved_flags) {
-    flag = false;
-  }
-}
-
-SmartPigpio::~SmartPigpio() {
-  gpioTerminate();
-}
+class GpioManager {
+  
+public:
+  
+  static std::shared_ptr<GpioManager> getSingleton();
+  
+  virtual ~GpioManager() = default;
+  
+  void reserveGpio(int gpio);
+  
+  void releaseGpio(int gpio);
+  
+private:
+  
+  GpioManager() = default;
+  
+  std::array<bool, 29> m_reserved_flags;
+  
+};
 
 } // end of namespace PiHWCtrl
+
+#endif /* PIHECTRL_GPIOMANAGER_H */
 
