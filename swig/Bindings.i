@@ -39,3 +39,9 @@
 #include <PiHWCtrl/i2c/I2CBus.h>
 %}
 %include PiHWCtrl/i2c/I2CBus.h
+        
+// Modules
+%{
+#include <PiHWCtrl/modules/BMP180.h>
+%}
+%include PiHWCtrl/modules/BMP180.h

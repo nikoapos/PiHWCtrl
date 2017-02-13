@@ -31,6 +31,7 @@ add_example(PigpioSwitchExample)
 add_example(FunWithLEDs)
 add_example(PigpioPWMExample)
 add_example(FunWithLEDsPWM)
+add_example(BMP180Example)
 
 
 ###########################
