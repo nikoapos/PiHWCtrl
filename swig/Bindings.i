@@ -33,3 +33,9 @@
 %include PiHWCtrl/pigpio/PigpioBinaryInput.h
 %include PiHWCtrl/pigpio/PigpioSwitch.h
 %include PiHWCtrl/pigpio/PigpioPWM.h
+        
+// I2C Bus
+%{
+#include <PiHWCtrl/i2c/I2CBus.h>
+%}
+%include PiHWCtrl/i2c/I2CBus.h
