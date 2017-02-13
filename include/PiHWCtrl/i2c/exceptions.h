@@ -25,6 +25,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <cstdint>
 #include <iomanip>
 #include <PiHWCtrl/HWInterfaces/exceptions.h>
 
@@ -51,6 +52,42 @@ public:
   }
   int address;
   int err_code;
+};
+
+class I2CActionOutOfTransaction : public Exception {
+};
+
+class I2CReadRegisterException : public Exception {
+public:
+  I2CReadRegisterException(std::int8_t register_address) 
+          : register_address(register_address), err_code(errno) {
+    appendMessage("Failed to read register ");
+    std::stringstream address_str;
+    address_str << std::hex << (int)register_address;
+    appendMessage(address_str.str() + ": ");
+    appendMessage(std::strerror(err_code));
+  }
+  std::int8_t register_address;
+  int err_code;
+};
+
+template <typename T>
+class I2CWriteRegisterException : public Exception {
+public:
+  I2CWriteRegisterException(std::int8_t register_address, T value)
+          : register_address(register_address), err_code(errno), value(value) {
+    std::stringstream message;
+    message << "Failed to write " << value << " in register "
+            << (int)register_address << ": ";
+    appendMessage(message.str());
+    appendMessage(std::strerror(err_code));
+  }
+  std::int8_t register_address;
+  int err_code;
+  T value;
+};
+
+class I2CWrongModule : public Exception {
 };
 
 } // end of namespace PiHWCtrl

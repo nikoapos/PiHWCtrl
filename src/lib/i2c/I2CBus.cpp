@@ -72,5 +72,10 @@ I2CBus::~I2CBus() {
   close(m_bus_file);
 }
 
+I2CTransaction I2CBus::startTransaction(std::uint8_t address) {
+  I2CTransaction transaction {m_bus_mutex};
+  connectToDevice(m_bus_file, address);
+  return transaction;
+}
 
 } // end of namespace PiHWCtrl
