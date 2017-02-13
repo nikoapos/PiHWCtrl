@@ -35,7 +35,7 @@ public:
   
   virtual ~BMP180() = default;
   
-  float getTemperature();
+  float readTemperature();
   
 private:
   

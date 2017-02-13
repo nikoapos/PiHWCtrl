@@ -91,7 +91,7 @@ BMP180::BMP180() {
   
 }
 
-float BMP180::getTemperature() {
+float BMP180::readTemperature() {
   // Get the I2C bus
   auto bus = I2CBus::getSingleton();
   

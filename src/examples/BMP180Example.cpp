@@ -26,5 +26,5 @@
 int main() {
   PiHWCtrl::BMP180 sensor {};
   
-  std::cout << "The temperature is " << sensor.getTemperature() << " C\n";
+  std::cout << "The temperature is " << sensor.readTemperature() << " C\n";
 }
