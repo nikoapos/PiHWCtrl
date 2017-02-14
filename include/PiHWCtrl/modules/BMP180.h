@@ -24,6 +24,8 @@
 #define PIHWCTRL_BMP180_H
 
 #include <cstdint>
+#include <memory>
+#include <PiHWCtrl/HWInterfaces/AnalogInput.h>
 
 namespace PiHWCtrl {
 
@@ -31,14 +33,39 @@ class BMP180 {
   
 public:
   
-  BMP180();
+  enum class PressureMode {
+    ULTRA_LOW_POWER,
+    STANDARD,
+    HIGH_RESOLUTION,
+    ULTRA_HIGH_RESOLUTION
+  };
+  
+  BMP180(PressureMode mode=PressureMode::STANDARD, float sea_level_pressure=1020);
   
   virtual ~BMP180() = default;
   
   float readTemperature();
   
+  float readPressure();
+  
+  float readAltitude();
+  
+  std::unique_ptr<AnalogInput> temperatureAnalogInput();
+  
+  std::unique_ptr<AnalogInput> pressureAnalogInput();
+  
+  std::unique_ptr<AnalogInput> altitudeAnalogInput();
+  
+  float getSeaLevelPressure();
+  
+  void setSeaLevelPressure(float pressure);
+  
+  float calibrateSeaLevelPressure(float altitude);
+  
 private:
   
+  PressureMode m_mode;
+  float m_sea_level_pressure;
   std::int16_t m_ac1;
   std::int16_t m_ac2;
   std::int16_t m_ac3;

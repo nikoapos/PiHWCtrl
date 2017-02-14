@@ -24,9 +24,11 @@
 #include <cmath>
 #include <chrono> // for std::chrono_literals
 #include <thread> // for std::this_thread
+#include <map>
 #include <PiHWCtrl/modules/BMP180.h>
 #include <PiHWCtrl/i2c/I2CBus.h>
-#include "PiHWCtrl/i2c/exceptions.h"
+#include <PiHWCtrl/i2c/exceptions.h>
+#include <PiHWCtrl/utils/FunctionAnalogInput.h>
 
 // We introduce the symbols from std::chrono_literals so we can write time
 // like 500ms (500 milliseconds)
@@ -58,40 +60,23 @@ constexpr std::uint8_t REGISTER_CALIBRATION_MD = 0xBE;
 // Useful commands
 constexpr std::uint8_t COMMAND_RESET = 0xB6;
 constexpr std::uint8_t COMMAND_READ_TEMPERATURE = 0x2E;
+constexpr std::uint8_t COMMAND_READ_PRESSURE = 0x34;
 
-}
-
-BMP180::BMP180() {
-  // Get the I2C bus
-  auto bus = I2CBus::getSingleton();
-  
-  // Start a transaction that will lock the I2C bus from others until we are done
-  auto transaction = bus->startTransaction(BMP180_ADDRESS);
-  
-  // Confirm that we have connected with a BMP180 chip
-  if (bus->readRegister<std::uint8_t>(REGISTER_CHIP_ID) != 0x55) {
-    throw I2CWrongModule() << "Attached module is not a BMP180";
+struct ModeInfo {
+  ModeInfo(std::uint8_t oss, std::chrono::milliseconds wait_time) : oss(oss), wait_time(wait_time) {
   }
-  
-  // Do a software reset
-  bus->writeRegister(REGISTER_RESET, COMMAND_RESET);
-  
-  // Read all the calibration registers
-  m_ac1 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_AC1);
-  m_ac2 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_AC2);
-  m_ac3 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_AC3);
-  m_ac4 = bus->readRegister<std::uint16_t>(REGISTER_CALIBRATION_AC4);
-  m_ac5 = bus->readRegister<std::uint16_t>(REGISTER_CALIBRATION_AC5);
-  m_ac6 = bus->readRegister<std::uint16_t>(REGISTER_CALIBRATION_AC6);
-  m_b1 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_B1);
-  m_b2 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_B2);
-  m_mb = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_MB);
-  m_mc = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_MC);
-  m_md = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_MD);
-  
-}
+  std::uint8_t oss;
+  std::chrono::milliseconds wait_time;
+};
 
-float BMP180::readTemperature() {
+std::map<BMP180::PressureMode, ModeInfo> mode_map {
+  {BMP180::PressureMode::ULTRA_LOW_POWER, ModeInfo{0, 5ms}},
+  {BMP180::PressureMode::STANDARD, ModeInfo{1, 8ms}},
+  {BMP180::PressureMode::HIGH_RESOLUTION, ModeInfo{2, 14ms}},
+  {BMP180::PressureMode::ULTRA_HIGH_RESOLUTION, ModeInfo{3, 26ms}}
+};
+
+std::uint16_t readUncompensatedTemperature() {
   // Get the I2C bus
   auto bus = I2CBus::getSingleton();
   
@@ -113,13 +98,155 @@ float BMP180::readTemperature() {
     ut = bus->readRegister<std::uint16_t>(REGISTER_OUT);
   }
   
+  return ut;
+}
+
+std::uint32_t readUncompensatedPressure(const ModeInfo& mode_info) {
+  // Get the I2C bus
+  auto bus = I2CBus::getSingleton();
+  
+  // Request the measurement by writing to the control register we do that in a
+  // scope so we don't block the I2C bus while waiting for the measurement to
+  // be done.
+  {
+    auto transaction = bus->startTransaction(BMP180_ADDRESS);
+    std::uint8_t cmd = COMMAND_READ_PRESSURE + (mode_info.oss << 6);
+    bus->writeRegister(REGISTER_MEASUREMENT_CONTROL, cmd);
+  }
+  
+  // Wait for the measurement to be completed
+  std::this_thread::sleep_for(mode_info.wait_time);
+  
+  // Read the uncompensated pressure value from the sensor
+  std::uint32_t up = 0;
+  {
+    auto transaction = bus->startTransaction(BMP180_ADDRESS);
+    auto buffer = bus->readRegisterAsArray<3>(REGISTER_OUT);
+    up = ((buffer[0] & 0xFF) << 16) | ((buffer[1] & 0xFF) << 8) | (buffer[2] & 0xFF);
+    up = up >> (8 - mode_info.oss);
+  }
+  
+  return up;
+}
+
+
+std::int32_t computeB5(std::uint16_t ut, std::uint16_t ac5, std::uint16_t ac6, std::int16_t mc, std::int16_t md) {
+  std::int32_t x1 = ((ut - ac6) * ac5) >> 15;
+  std::int32_t x2 = (mc << 11) / (x1 + md);
+  return x1 + x2;
+}
+
+} // end of anonymous namespace
+
+BMP180::BMP180(PressureMode mode, float sea_level_pressure)
+        : m_mode(mode), m_sea_level_pressure(sea_level_pressure) {
+  // Get the I2C bus
+  auto bus = I2CBus::getSingleton();
+  
+  // Start a transaction that will lock the I2C bus from others until we are done
+  auto transaction = bus->startTransaction(BMP180_ADDRESS);
+  
+  // Confirm that we have connected with a BMP180 chip
+  if (bus->readRegister<std::uint8_t>(REGISTER_CHIP_ID) != 0x55) {
+    throw I2CWrongModule() << "Attached module is not a BMP180";
+  }
+  
+  // Read all the calibration registers
+  m_ac1 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_AC1);
+  m_ac2 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_AC2);
+  m_ac3 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_AC3);
+  m_ac4 = bus->readRegister<std::uint16_t>(REGISTER_CALIBRATION_AC4);
+  m_ac5 = bus->readRegister<std::uint16_t>(REGISTER_CALIBRATION_AC5);
+  m_ac6 = bus->readRegister<std::uint16_t>(REGISTER_CALIBRATION_AC6);
+  m_b1 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_B1);
+  m_b2 = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_B2);
+  m_mb = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_MB);
+  m_mc = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_MC);
+  m_md = bus->readRegister<std::int16_t>(REGISTER_CALIBRATION_MD);
+  
+}
+
+float BMP180::readTemperature() {
+  
+  std::uint16_t ut = readUncompensatedTemperature();
+  
   // Calculate the true temperature
-  long x1 = (ut - m_ac6) * m_ac5 / 32768;
-  long x2 = m_mc * 2048 / (x1 + m_md);
-  long b5 = x1 + x2;
-  long temperature = (b5 + 8) / 16;
+  std::int32_t b5 = computeB5(ut, m_ac5, m_ac6, m_mc, m_md);
+  long temperature = (b5 + 8) >> 4;
   
   return temperature * 0.1;
+}
+
+float BMP180::readPressure() {
+  
+  // Get the mode info from the map
+  auto& mode_info = mode_map.at(m_mode);
+  
+  std::uint16_t ut = readUncompensatedTemperature();
+  std::uint32_t up = readUncompensatedPressure(mode_info);
+  
+  // Calculate the true pressure
+  std::int32_t pressure = 0;
+  std::int32_t b5 = computeB5(ut, m_ac5, m_ac6, m_mc, m_md);
+  std::int32_t b6 = b5 - 4000;
+  std::int32_t x1 = (m_b2 * (b6 * b6) >> 12) >> 11;
+  std::int32_t x2 = (m_ac2 * b6) >> 11;
+  std::int32_t x3 = x1 + x2;
+  std::int32_t b3 = ((((m_ac1 << 2) + x3) << mode_info.oss) + 2) >> 2;
+  x1 = (m_ac3 * b6) >> 13;
+  x2 = (m_b1 * ((b6 * b6) >> 12)) >> 16;
+  x3 = ((x1 + x2) + 2) >> 2;
+  std::uint32_t b4 = (m_ac4 * std::uint32_t(x3 + 32768)) >> 15;
+  std::uint32_t b7 = (std::uint32_t(up) - b3) * (50000 >> mode_info.oss);
+  if (b7 < 0x80000000) {
+    pressure = (b7 * 2) / b4;
+  } else {
+    pressure = (b7 / b4) * 2;
+  }
+  x1 = (pressure >> 8) * (pressure >> 8);
+  x1 = (x1 * 3038) >> 16;
+  x2 = (-7357 * pressure) >> 16;
+  pressure = pressure + ((x1 + x2 + 3791) >> 4);
+  
+  return pressure * 0.01;
+}
+
+float BMP180::readAltitude() {
+  float pressure = readPressure();
+  float ratio = pressure / m_sea_level_pressure;
+  return 44330 * (1 - std::pow(ratio, 1./5.255));
+}
+
+std::unique_ptr<AnalogInput> BMP180::temperatureAnalogInput() {
+  return std::make_unique<FunctionAnalogInput>(
+      [this] () { return this->readTemperature(); }
+  );
+}
+
+std::unique_ptr<AnalogInput> BMP180::pressureAnalogInput() {
+  return std::make_unique<FunctionAnalogInput>(
+      [this] () { return this->readPressure(); }
+  );
+}
+
+std::unique_ptr<AnalogInput> BMP180::altitudeAnalogInput() {
+  return std::make_unique<FunctionAnalogInput>(
+      [this] () { return this->readAltitude(); }
+  );
+}
+
+float BMP180::getSeaLevelPressure() {
+  return m_sea_level_pressure;
+}
+
+void BMP180::setSeaLevelPressure(float pressure) {
+  m_sea_level_pressure = pressure;
+}
+
+float BMP180::calibrateSeaLevelPressure(float altitude) {
+  float pressure = readPressure();
+  m_sea_level_pressure = pressure / std::pow(1 - altitude / 44330, 5.255);
+  return m_sea_level_pressure;
 }
 
 } // end of namespace PiHWCtrl

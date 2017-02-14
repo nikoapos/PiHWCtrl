@@ -24,7 +24,18 @@
 #include <PiHWCtrl/modules/BMP180.h>
 
 int main() {
-  PiHWCtrl::BMP180 sensor {};
+  PiHWCtrl::BMP180 sensor {PiHWCtrl::BMP180::PressureMode::ULTRA_LOW_POWER};
+  
+  sensor.calibrateSeaLevelPressure(480);
   
   std::cout << "The temperature is " << sensor.readTemperature() << " C\n";
+  std::cout << "The pressure is " << sensor.readPressure() << " hPa\n";
+  std::cout << "The altitude is " << sensor.readAltitude() << " m\n";
+  
+  auto analog_input = sensor.temperatureAnalogInput();
+  std::cout << "Temperature from analog input is " << analog_input->readValue() << " C\n";
+  analog_input = sensor.pressureAnalogInput();
+  std::cout << "Pressure from analog input is " << analog_input->readValue() << " C\n";
+  analog_input = sensor.altitudeAnalogInput();
+  std::cout << "Altitude from analog input is " << analog_input->readValue() << " C\n";
 }
