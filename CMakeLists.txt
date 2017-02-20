@@ -34,6 +34,7 @@ add_example(FunWithLEDsPWM)
 add_example(BMP180Example)
 add_example(MeanFilterExample)
 add_example(HCSR04Example)
+add_example(LSM303DLHCExample)
 
 
 ###########################
