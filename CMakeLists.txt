@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(PiHWCtrl)
 
+####################################
+# Set the directories of the build #
+####################################
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+set(PYTHON_OUTPUT_PATH ${PROJECT_BINARY_DIR}/python)
+
 #########################
 # Build the C++ library #
 #########################
@@ -41,8 +48,8 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_PATH})
 
 # Set the path in the build directory to create everything
-set(CMAKE_SWIG_OUTDIR ${CMAKE_BINARY_DIR}/python/PiHWCtrl)
-file(WRITE ${CMAKE_BINARY_DIR}/python/PiHWCtrl/__init__.py)
+set(CMAKE_SWIG_OUTDIR ${PYTHON_OUTPUT_PATH}/PiHWCtrl)
+file(WRITE ${PYTHON_OUTPUT_PATH}/PiHWCtrl/__init__.py)
 
 # Add all the modules
 file(GLOB SWIG_FILES "swig/*.i")
