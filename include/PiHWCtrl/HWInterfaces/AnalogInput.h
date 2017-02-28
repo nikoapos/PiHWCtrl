@@ -25,12 +25,24 @@
 
 namespace PiHWCtrl {
 
+/**
+ * @class AnalogInput
+ * 
+ * @brief
+ * Interface representing an analog input
+ * 
+ * @details
+ * Analog input is anything that provides a floating point value. This interface
+ * defines a method for accessing this value.
+ */
 class AnalogInput {
   
 public:
 
+  /// Default destructor
   virtual ~AnalogInput() = default;
   
+  /// Must be implemented by the subclasses to return the value of the input
   virtual float readValue() = 0;
   
 };

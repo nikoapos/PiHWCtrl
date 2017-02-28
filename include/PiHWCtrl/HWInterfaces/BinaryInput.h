@@ -54,4 +54,3 @@ public:
 } // end of namespace PiHWCtrl
 
 #endif /* PIHWCTRL_BINARYINPUT_H */
-

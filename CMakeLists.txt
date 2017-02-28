@@ -44,7 +44,7 @@ find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
 
 # Add the Python headers in the include directories
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
 include_directories(${PYTHON_INCLUDE_PATH})
 
 # Set the path in the build directory to create everything
@@ -55,7 +55,9 @@ file(WRITE ${PYTHON_OUTPUT_PATH}/PiHWCtrl/__init__.py)
 file(GLOB SWIG_FILES "swig/*.i")
 foreach(swig_file ${SWIG_FILES})
     get_filename_component(module_name ${swig_file} NAME_WE)
-    set_source_files_properties($swig_file} PROPERTIES CPLUSPLUS ON)
+    set_source_files_properties(${swig_file} PROPERTIES CPLUSPLUS ON)
+#    set_source_files_properties(${swig_file} PROPERTIES SWIG_FLAGS "-includeall")
     swig_add_module(${module_name} python ${swig_file})
+    set_target_properties(_${module_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYTHON_OUTPUT_PATH}/PiHWCtrl)
     swig_link_libraries(${module_name} pihwctrl pigpio pthread ${PYTHON_LIBRARIES})
 endforeach(swig_file)
