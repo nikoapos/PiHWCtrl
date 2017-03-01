@@ -24,6 +24,10 @@
 #define PIHWCTRL_SPIBUS_H
 
 #include <memory>
+#include <array>
+#include <sys/ioctl.h> // For ioctl()
+#include <linux/spi/spidev.h>
+#include <PiHWCtrl/spi/exceptions.h>
 
 namespace PiHWCtrl {
 
@@ -45,10 +49,33 @@ public:
   
   virtual ~SPIBus();
   
+  template <std::size_t Size>
+  std::array<std::uint8_t, Size> transferArray(std::array<std::uint8_t, Size> tx) {
+    
+    std::array<std::uint8_t, Size> rx;
+    
+    spi_ioc_transfer tr;
+    tr.tx_buf = std::uint64_t(tx.data());
+    tr.rx_buf = std::uint64_t(rx.data());
+    tr.len = Size;
+    tr.delay_usecs = m_delay_usecs;
+    tr.speed_hz = m_speed_hz;
+    tr.bits_per_word = m_bits_per_word;
+
+    if (ioctl(m_bus_file, SPI_IOC_MESSAGE(1), &tr) != Size) {
+      throw SPITransferException();
+    }
+    
+    return rx;
+  }
+  
 private:
   
   Device m_device;
   int m_bus_file;
+  std::uint16_t m_delay_usecs;
+  std::uint32_t m_speed_hz;
+  std::uint8_t m_bits_per_word;
   
 };
 

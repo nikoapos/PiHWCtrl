@@ -130,6 +130,12 @@ SPIBus::SPIBus(Device device, Speed speed) : m_device(device) {
     throw SPISpeedException(speed_info_map.at(speed));
   }
   
+  // Setup the required info for the spi_ioc_transfer object that will be used
+  // for the transfers
+  m_delay_usecs = SPI_DELAY;
+  m_speed_hz = speed_info_map.at(speed);
+  m_bits_per_word = SPI_BITS_PER_WORD;
+  
 }
 
 SPIBus::~SPIBus() {

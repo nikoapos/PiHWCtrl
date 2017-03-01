@@ -76,6 +76,15 @@ public:
   int err_code;
 };
 
+class SPITransferException : public Exception {
+public:
+  SPITransferException() : err_code(errno) {
+    appendMessage("SPI transfer failed: ");
+    appendMessage(std::strerror(err_code));
+  }
+  int err_code;
+};
+
 } // end of namespace PiHWCtrl
 
 #endif /* PIHWCTRL_SPI_EXCEPTIONS_H */
