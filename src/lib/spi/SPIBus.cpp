@@ -22,11 +22,8 @@
 
 #include <string>
 #include <map>
-#include <cstdint>
 #include <fcntl.h> // For open()
 #include <unistd.h> // For close()
-#include <sys/ioctl.h> // For ioctl()
-#include <linux/spi/spidev.h>
 #include <PiHWCtrl/utils/GpioManager.h>
 #include <PiHWCtrl/spi/SPIBus.h>
 #include <PiHWCtrl/spi/exceptions.h>

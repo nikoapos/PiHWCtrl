@@ -23,7 +23,7 @@
 #ifndef PIHWCTRL_SPIBUS_H
 #define PIHWCTRL_SPIBUS_H
 
-#include <memory>
+#include <cstdint>
 #include <array>
 #include <sys/ioctl.h> // For ioctl()
 #include <linux/spi/spidev.h>
@@ -61,6 +61,10 @@ public:
     tr.delay_usecs = m_delay_usecs;
     tr.speed_hz = m_speed_hz;
     tr.bits_per_word = m_bits_per_word;
+    tr.cs_change = 0;
+    tr.tx_nbits=0;
+    tr.rx_nbits=0;
+    tr.pad=0;
 
     if (ioctl(m_bus_file, SPI_IOC_MESSAGE(1), &tr) != Size) {
       throw SPITransferException();
