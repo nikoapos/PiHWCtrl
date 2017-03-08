@@ -20,8 +20,8 @@
  * @author nikoapos
  */
 
-#ifndef PIHECTRL_EXCEPTIONS_H
-#define PIHECTRL_EXCEPTIONS_H
+#ifndef PIHWCTRL_I2C_EXCEPTIONS_H
+#define PIHWCTRL_I2C_EXCEPTIONS_H
 
 #include <cerrno>
 #include <cstring>
@@ -92,5 +92,5 @@ class I2CWrongModule : public Exception {
 
 } // end of namespace PiHWCtrl
 
-#endif /* PIHECTRL_EXCEPTIONS_H */
+#endif /* PIHWCTRL_I2C_EXCEPTIONS_H */
 
