@@ -25,6 +25,7 @@
 
 #include <cstdint>
 #include <array>
+#include <assert.h>
 #include <sys/ioctl.h> // For ioctl()
 #include <linux/spi/spidev.h>
 #include <PiHWCtrl/spi/exceptions.h>
@@ -50,7 +51,7 @@ public:
   virtual ~SPIBus();
   
   template <std::size_t Size>
-  std::array<std::uint8_t, Size> transferArray(std::array<std::uint8_t, Size> tx) {
+  std::array<std::uint8_t, Size> transferArray(const std::array<std::uint8_t, Size>& tx) {
     
     std::array<std::uint8_t, Size> rx;
     
@@ -71,6 +72,49 @@ public:
     }
     
     return rx;
+  }
+  
+  template <typename Response, typename Transmit>
+  Response transfer(const Transmit& value) {
+    static_assert(sizeof(Response) == sizeof(Transmit),
+            "SPI transfer Response and Transmit types must have the same size");
+    
+    // Construct the array to send to the bus
+    std::array<std::uint8_t, sizeof(Transmit)> tx;
+    const std::uint8_t* value_ptr = reinterpret_cast<const std::uint8_t*>(&value);
+    for (int i = 0; i < sizeof(Transmit); ++i) {
+      tx[i] = *(value_ptr + i);
+    }
+    
+    // Transmit the value and get the response as an array
+    auto rx = transferArray(tx);
+    
+    // Convert the response to the correct type
+    Response result;
+    std::uint8_t* result_ptr = reinterpret_cast<std::uint8_t*>(&result);
+    for (int i = 0; i < sizeof(Response); ++i) {
+      *(result_ptr + i) = rx[i];
+    }
+    
+    return result;
+  }
+  
+  template <typename T>
+  void write(const T& value) {
+    // Transmit the value and ignore the result
+    transfer<T>(value);
+  }
+  
+  template <typename T>
+  T read() {
+    // Create an array of zeroes to send
+    std::array<std::uint8_t, sizeof(T)> tx;
+    for (auto& x : tx) {
+      x = 0;
+    }
+    
+    // Transmit the dummy array and return the result
+    return transfer<T>(tx);
   }
   
 private:
