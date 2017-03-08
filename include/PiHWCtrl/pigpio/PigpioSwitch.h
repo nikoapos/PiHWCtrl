@@ -25,6 +25,7 @@
 
 #include <PiHWCtrl/HWInterfaces/Switch.h>
 #include <PiHWCtrl/HWInterfaces/BinaryInput.h>
+#include <PiHWCtrl/utils/GpioManager.h>
 #include <PiHWCtrl/pigpio/SmartPigpio.h>
 
 namespace PiHWCtrl {
@@ -75,8 +76,8 @@ public:
   PigpioSwitch& operator=(const PigpioSwitch& right) = delete;
   
   // Moving is OK. The old object will not manage the GPIO any more.
-  PigpioSwitch(PigpioSwitch&& other);
-  PigpioSwitch& operator=(PigpioSwitch&& other);
+  PigpioSwitch(PigpioSwitch&& other) = default;
+  PigpioSwitch& operator=(PigpioSwitch&& other) = default;
   
   /**
    * @brief Destructor of the PigpioSwitch
@@ -85,7 +86,7 @@ public:
    * After the destructor is called the GPIO reserved by it is released and it
    * can be used by other PiHWCtrl objects.
    */
-  virtual ~PigpioSwitch();
+  virtual ~PigpioSwitch() = default;
 
   /// Sets the GPIO to ON (3.3 Volt) if the parameter is true or OFF (GRD) if
   /// it is false.
@@ -100,6 +101,7 @@ private:
   // We keep a pointer to the SmartPigpio singleton to guarantee that it is
   // initialized and not deleted for the lifetime of the object
   std::shared_ptr<SmartPigpio> m_smart_pigpio = SmartPigpio::getSingleton();
+  std::unique_ptr<GpioManager::GpioReservation> m_gpio_reservation;
 
 };
 

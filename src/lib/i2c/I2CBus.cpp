@@ -52,8 +52,8 @@ std::shared_ptr<I2CBus> I2CBus::getSingleton() {
 
 I2CBus::I2CBus() {
   // Reserve the GPIOs used for the SDA and SCL so no other object can use them
-  GpioManager::getSingleton()->reserveGpio(SDA_GPIO);
-  GpioManager::getSingleton()->reserveGpio(SCL_GPIO);
+  m_sda_gpio_reservation = GpioManager::getSingleton()->reserveGpio(SDA_GPIO);
+  m_scl_gpio_reservation = GpioManager::getSingleton()->reserveGpio(SCL_GPIO);
   
   // Open the file for using the bus
   std::string filename = "/dev/i2c-" + std::to_string(I2C_ADAPTER);
@@ -64,9 +64,6 @@ I2CBus::I2CBus() {
 }
 
 I2CBus::~I2CBus() {
-  // Release the GPIOs so other objects can use them
-  GpioManager::getSingleton()->releaseGpio(SDA_GPIO);
-  GpioManager::getSingleton()->releaseGpio(SCL_GPIO);
   
   // Close the bus file
   close(m_bus_file);

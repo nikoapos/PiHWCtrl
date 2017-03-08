@@ -30,7 +30,7 @@ std::shared_ptr<GpioManager> GpioManager::getSingleton() {
   return singleton;
 }
 
-void GpioManager::reserveGpio(int gpio) {
+auto GpioManager::reserveGpio(int gpio) -> std::unique_ptr<GpioReservation> {
   if (gpio < 2 || gpio > 28) {
     throw BadGpioNumber(gpio);
   }
@@ -38,13 +38,7 @@ void GpioManager::reserveGpio(int gpio) {
     throw GpioAlreadyReserved(gpio);
   }
   m_reserved_flags[gpio] = true;
-}
-
-void GpioManager::releaseGpio(int gpio) {
-  if (gpio < 2 || gpio > 28) {
-    throw BadGpioNumber(gpio);
-  }
-  m_reserved_flags[gpio] = false;
+  return std::make_unique<GpioReservation>(m_reserved_flags[gpio]);
 }
 
 } // end of namespace PiHWCtrl
