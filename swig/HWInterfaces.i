@@ -26,3 +26,17 @@
 %}
 %feature("director") PiHWCtrl::AnalogInput;
 %include PiHWCtrl/HWInterfaces/AnalogInput.h
+
+%{
+#include <PiHWCtrl/HWInterfaces/Observer.h>
+%}
+%include PiHWCtrl/HWInterfaces/Observer.h
+%feature("director") PiHWCtrl::Observer<bool>;
+%template(BoolObserver) PiHWCtrl::Observer<bool>;
+
+%{
+#include <PiHWCtrl/HWInterfaces/Observable.h>
+%}
+%include PiHWCtrl/HWInterfaces/Observable.h
+%feature("director") PiHWCtrl::Observable<bool>;
+%template(BoolObservable) PiHWCtrl::Observable<bool>;

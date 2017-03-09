@@ -24,7 +24,7 @@
  * Description
  * -----------
  * 
- * Simple example of how to use the PigpioBinaryInput class. This class
+ * Simple example of how to use the GpioBinaryInput class. This class
  * implements the PiHWCtrl::BinaryInput interface and can be used to read
  * binary input from one of the GPIO pins accessible via the 40 pin interface
  * (GPIOs 2-28). It interprets the input as following:
@@ -32,17 +32,17 @@
  * - ON: 3.3 Volt connected to the pin
  * - OFF: GND connected to the pin or the pin is open circuited
  * 
- * Under the hood, this class uses the pigpio library, so any program using it
- * must be executed with root privileges (sudo).
- * 
  * Hardware implementation
  * -----------------------
  * Materials:
  *   - A switch
+ *   - A 10k resistor (used as pull-up)
  * 
  * Connections:
  *   - Connect the GPIO-21 pin to the one side of the switch
- *   - Connect a 3.3 Volt pin to the other side of the switch
+ *   - Connect a GND pin to the other side of the switch
+ *   - Connect the one side of the resistor to the GPIO-21
+ *   - Connect the other side of the resistor to a 3V3 pin
  * 
  * Execution:
  * Turn the switch off and run the example. Then turn the switch on and re-run
@@ -50,14 +50,14 @@
  */
 
 #include <iostream> // for std::cout
-#include <PiHWCtrl/pigpio/PigpioBinaryInput.h> // for PigpioBinaryInput
+#include <PiHWCtrl/gpio/GpioBinaryInput.h> // for GpioBinaryInput
 
 int main() {
   
   // Create an object for getting binary input from the GPIO 21. This object
   // implements the PiHWCtrl::BinaryInput interface, so it can be used with any
   // function expecting the interface.
-  PiHWCtrl::PigpioBinaryInput input {21};
+  PiHWCtrl::GpioBinaryInput input {21};
   
   // For checking if the input pin is on or off you can use the isOn() and
   // isOff() methods, which return a boolean.

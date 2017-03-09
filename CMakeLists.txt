@@ -8,6 +8,15 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(PYTHON_OUTPUT_PATH ${PROJECT_BINARY_DIR}/python)
 
+###############################
+# Set the necessary libraries #
+###############################
+
+list (APPEND LINK_LIBS "pigpio")
+list (APPEND LINK_LIBS "pthread")
+find_package(Boost COMPONENTS filesystem REQUIRED)
+list (APPEND LINK_LIBS ${Boost_LIBRARIES})
+
 #########################
 # Build the C++ library #
 #########################
@@ -31,7 +40,7 @@ file(GLOB EXAMPLE_FILES "src/examples/*.cpp")
 foreach(example_file ${EXAMPLE_FILES})
     get_filename_component(example_name ${example_file} NAME_WE)
     add_executable(${example_name} ${example_file})
-    target_link_libraries(${example_name} pihwctrl pigpio pthread)
+    target_link_libraries(${example_name} pihwctrl ${LINK_LIBS})
 endforeach(example_file)
 
 
@@ -59,5 +68,5 @@ foreach(swig_file ${SWIG_FILES})
 #    set_source_files_properties(${swig_file} PROPERTIES SWIG_FLAGS "-includeall")
     swig_add_module(${module_name} python ${swig_file})
     set_target_properties(_${module_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PYTHON_OUTPUT_PATH}/PiHWCtrl)
-    swig_link_libraries(${module_name} pihwctrl pigpio pthread ${PYTHON_LIBRARIES})
+    swig_link_libraries(${module_name} pihwctrl ${LINK_LIBS} ${PYTHON_LIBRARIES})
 endforeach(swig_file)
