@@ -35,6 +35,7 @@ GpioBinaryInput::~GpioBinaryInput() {
 }
 
 bool GpioBinaryInput::isOn() const {
+  std::lock_guard<std::mutex> guard {m_gpio_mutex};
   return m_gpio.getState();
 }
 
@@ -44,7 +45,6 @@ void GpioBinaryInput::start(unsigned int sleep_ms) {
   }
   m_observing = true;
   auto event_func = [this]() {
-    std::lock_guard<std::mutex> guard {m_gpio_mutex};
     return isOn();
   };
   auto notify_func = [this](bool value) {

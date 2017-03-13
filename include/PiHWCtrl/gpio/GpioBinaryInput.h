@@ -77,7 +77,7 @@ public:
 private:
   
   Gpio m_gpio;
-  std::mutex m_gpio_mutex;
+  mutable std::mutex m_gpio_mutex;
   std::atomic<bool> m_observing {false};
   
 };
