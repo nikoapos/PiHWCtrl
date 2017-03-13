@@ -16,15 +16,16 @@
  */
 
 /* 
- * @file GpioBinaryInput.h
+ * @file GpioSwitch.h
  * @author nikoapos
  */
 
-#ifndef PIHWCTRL_GPIO_GPIOBINARYINPUT_H
-#define PIHWCTRL_GPIO_GPIOBINARYINPUT_H
+#ifndef PIHWCTRL_GPIO_GPIOSWITCH_H
+#define PIHWCTRL_GPIO_GPIOSWITCH_H
 
 #include <mutex>
 #include <atomic>
+#include <PiHWCtrl/HWInterfaces/Switch.h>
 #include <PiHWCtrl/HWInterfaces/BinaryInput.h>
 #include <PiHWCtrl/HWInterfaces/Observable.h>
 #include <PiHWCtrl/gpio/Gpio.h>
@@ -32,27 +33,27 @@
 namespace PiHWCtrl {
 
 /**
- * @class GpioBinaryInput
+ * @class GpioSwitch
  * 
  * @brief
- * Implementation of the BinaryInput interface using the linux driver via sysfs
+ * Implemenation of the Switch interface using the linux driver via sysfs
  * 
  * @details
- * This class can be used to access the GPIOs 2-28 of the 40 pin interface of
- * the Raspberry Pi. The input is interpreted as following:
- * 
- * - ON: 3.3 Volt connected to the pin
- * - OFF: GND connected to the pin or the pin is open circuited
+ * This class can be used to control the GPIOs 2-28 of the 40 pin interface of
+ * the Raspberry Pi as ON (3.3 Volt) / OFF (GND) switches. The class also
+ * implements the BinaryInput and Observable interfaces so its current state can
+ * be retrieved from the code side. Note that the class generates events only
+ * when the set() method is called and it is not continuously monitored.
  */
-class GpioBinaryInput : public BinaryInput, public Observable<bool> {
+class GpioSwitch : public Switch, public BinaryInput, public Observable<bool> {
   
 public:
   
   /**
-   * @brief Creates a GpioBinaryInput for the requested pin
+   * @brief Creates a GpioSwitch for the requested pin
    * 
    * @param gpio
-   *    The number of the GPIO to use as the input
+   *    The number of the GPIO to use as the switch
    * 
    * @throws GpioAlreadyResearved
    *    If the requested GPIO is already reserved by another PiHWCtrl object
@@ -61,31 +62,25 @@ public:
    * @throws GpioException
    *    If there was any problem with the communication with the driver
    */
-  GpioBinaryInput(int gpio);
-
+  GpioSwitch(int gpio);
+  
   /// Releases the physical GPIO
-  virtual ~GpioBinaryInput();
+  virtual ~GpioSwitch() = default;
+  
+  /// Sets the state of the pin (as described at the class documentation)
+  void set(bool value) override;
   
   /// Returns true if the input is ON (as described at the class documentation)
   /// and false otherwise
   bool isOn() const override;
   
-  /// Start monitoring the pin and notify the observers for its state every sleep_ms
-  /// milliseconds
-  void start(unsigned int sleep_ms=10);
-  
-  /// Stop monitoring the pin
-  void stop();
-
 private:
   
   Gpio m_gpio;
-  mutable std::mutex m_gpio_mutex;
-  std::atomic<bool> m_observing {false};
   
 };
 
 } // end of namespace PiHWCtrl
 
-#endif /* PIHWCTRL_GPIO_GPIOBINARYINPUT_H */
+#endif /* PIHWCTRL_GPIO_GPIOSWITCH_H */
 
