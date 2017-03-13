@@ -16,43 +16,28 @@
  */
 
 /* 
- * @file PiHWCtrl/controls/MeanFilter.h
+ * @file exceptions.h
  * @author nikoapos
  */
 
-#ifndef PIHWCTRL_MEANFILTER_H
-#define PIHWCTRL_MEANFILTER_H
+#ifndef PIHWCTRL_MODULES_EXCEPTIONS_H
+#define PIHWCTRL_MODULES_EXCEPTIONS_H
 
-#include <vector>
-#include <memory>
-#include <PiHWCtrl/HWInterfaces/AnalogInput.h>
+#include <PiHWCtrl/HWInterfaces/exceptions.h>
 
 namespace PiHWCtrl {
 
-class MeanFilter : public AnalogInput<float> {
-  
+class ModuleAlreadyInUse : public Exception {
 public:
-  
-  MeanFilter(std::shared_ptr<AnalogInput<float>> input, std::size_t buffer_size)
-          : m_input(input), m_size(buffer_size), m_current(input->readValue()),
-            m_buffer(buffer_size, m_current) {
+  ModuleAlreadyInUse(std::string module_name) : module_name(module_name) {
+    appendMessage("Module ");
+    appendMessage(module_name);
+    appendMessage(" is already in use");
   }
-
-  virtual ~MeanFilter() = default;
-  
-  float readValue() override;
-
-private:
-  
-  std::shared_ptr<AnalogInput<float>> m_input;
-  std::size_t m_size;
-  float m_current;
-  std::vector<float> m_buffer;
-  std::size_t m_index = 0;
-  
+  std::string module_name;
 };
 
 } // end of namespace PiHWCtrl
 
-#endif /* PIHWCTRL_MEANFILTER_H */
+#endif /* PIHWCTRL_MODULES_EXCEPTIONS_H */
 

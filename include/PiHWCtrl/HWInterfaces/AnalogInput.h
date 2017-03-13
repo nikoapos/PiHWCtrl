@@ -23,6 +23,9 @@
 #ifndef PIHWCTRL_ANALOGINPUT_H
 #define PIHWCTRL_ANALOGINPUT_H
 
+#include <type_traits>
+#include <cstdint>
+
 namespace PiHWCtrl {
 
 /**
@@ -32,10 +35,15 @@ namespace PiHWCtrl {
  * Interface representing an analog input
  * 
  * @details
- * Analog input is anything that provides a floating point value. This interface
+ * Analog input is anything that provides an arithmetic value. This interface
  * defines a method for accessing this value.
+ * 
+ * @tparam T
+ *    The type of the value. Must be arithmetic.
  */
+template <typename T>
 class AnalogInput {
+  static_assert(std::is_arithmetic<T>::value, "The type T of the AnalogInput must be arithmetic");
   
 public:
 
@@ -43,7 +51,7 @@ public:
   virtual ~AnalogInput() = default;
   
   /// Must be implemented by the subclasses to return the value of the input
-  virtual float readValue() = 0;
+  virtual T readValue() = 0;
   
 };
 

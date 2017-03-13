@@ -25,44 +25,126 @@
 
 #include <cstdint>
 #include <memory>
+#include <chrono>
 #include <PiHWCtrl/HWInterfaces/AnalogInput.h>
 
 namespace PiHWCtrl {
 
+/**
+ * @class BMP180
+ * 
+ * @brief
+ * Class for controlling the BMP180 pressure and temperature sensor
+ * 
+ * @details
+ * The BMP180 can measure both temperature and pressure. This class handles the
+ * communication with the sensor and it computes the altitude based on the
+ * measured pressure and the sea level pressure.
+ * 
+ * The sea level pressure can either be given (as a constructor parameter or by
+ * using the setSeaLevelPressure() method), or it can be calibrated using a
+ * known current altitude, by using the method calibrateSeaLevelPressure().
+ * 
+ * This class provides access to both the raw uncompensated measurements from the
+ * sensors and the true values after applying the calibration, via three ways:
+ * 
+ * - By direct access via the dedicated methods
+ * - By providing AnalogInput implementations for each measurement to be used
+ *   for pull implementations (suitable to be passed as parameters to objects
+ *   that expect AnalogInputs)
+ * - By accepting Observers to be notified for each measurement to be used for
+ *   push implementations
+ * 
+ * Note that if the AnalogInput implementations method is used, the lifetime of
+ * the BMP180 object itself must be longer than the ones of the AnalogInputs.
+ */
 class BMP180 {
   
 public:
   
+  /// The different sampling accuracy modes for the pressure measurements
   enum class PressureMode {
-    ULTRA_LOW_POWER,
-    STANDARD,
-    HIGH_RESOLUTION,
-    ULTRA_HIGH_RESOLUTION
+    ULTRA_LOW_POWER,       ///< Conversion time  4.5ms. RMS 0.06hPa - 0.5m
+    STANDARD,              ///< Conversion time  7.5ms, RMS 0.05hPa - 0.4m
+    HIGH_RESOLUTION,       ///< Conversion time 13.5ms, RMS 0.04hPa - 0.3m
+    ULTRA_HIGH_RESOLUTION  ///< Conversion time 25.5ms, RMS 0.03hPa - 0.25m
   };
   
-  BMP180(PressureMode mode=PressureMode::STANDARD, float sea_level_pressure=1020);
+  /**
+   * @brief Creates a new BMP180 instance
+   * 
+   * @details
+   * This call will perform a soft reset to the device. Only a single instance
+   * of the BMP180 can exist at a time. If it needs to be accessed from multiple
+   * places, the result of this call should be stored in a shared pointer and
+   * copied around.
+   * 
+   * @param mode
+   *    The pressure sampling accuracy mode
+   * @param sea_level_pressure
+   *    The sea level pressure to use for altitude computation
+   * @return
+   *    The BMP180 instance
+   * @throws ModuleAlreadyInUse
+   *    If there is already an instance of the BMP180 class controlling the device
+   * @throws I2CDeviceConnectionFailure
+   *    If the connection to the device fails
+   * @throws I2CWrongModule
+   *    If the connected device is not a BMP180
+   */
+  static std::unique_ptr<BMP180> factory(PressureMode mode=PressureMode::STANDARD,
+                                         float sea_level_pressure=1020);
   
-  virtual ~BMP180() = default;
+  /// Allows other BMP180 instances to be created
+  virtual ~BMP180();
   
+  /// Returns the uncompensated value of the temperature
+  std::uint16_t readRawTemperature();
+  
+  /// Returns an AnalogInput for accessing the uncompensated temperature
+  std::unique_ptr<AnalogInput<std::uint16_t>> rawTemperatureAnalogInput();
+  
+  /// Returns the calibrated value of the temperature
   float readTemperature();
   
+  /// Returns an AnalogInput for accessing the calibrated temperature
+  std::unique_ptr<AnalogInput<float>> temperatureAnalogInput();
+  
+  /// Returns the uncompensated value of the pressure
+  std::uint32_t readRawPressure();
+  
+  /// Returns an AnalogInput for accessing the uncompensated pressure
+  std::unique_ptr<AnalogInput<std::uint16_t>> rawPressureAnalogInput();
+  
+  /// Returns the calibrated value of the pressure
   float readPressure();
   
+  /// Returns an AnalogInput for accessing the calibrated pressure
+  std::unique_ptr<AnalogInput<float>> pressureAnalogInput();
+  
+  // Returns the computed altitude
   float readAltitude();
   
-  std::unique_ptr<AnalogInput> temperatureAnalogInput();
+  /// Returns an AnalogInput for accessing the altitude
+  std::unique_ptr<AnalogInput<float>> altitudeAnalogInput();
   
-  std::unique_ptr<AnalogInput> pressureAnalogInput();
-  
-  std::unique_ptr<AnalogInput> altitudeAnalogInput();
-  
+  /// Returns the sea level pressure used for computing the altitude
   float getSeaLevelPressure();
   
+  /// Sets the sea level pressure to a fixed user value
   void setSeaLevelPressure(float pressure);
   
+  /// Calibrates the sea level pressure assuming that the sensor is at the
+  /// given altitude
   float calibrateSeaLevelPressure(float altitude);
   
 private:
+  
+  BMP180(PressureMode mode, float sea_level_pressure);
+  
+  std::int32_t computeB5(std::uint16_t ut);
+  float computeRealTemperature(std::uint16_t ut, std::int32_t b5);
+  float computeRealPressure(std::uint16_t ut, std::uint32_t up);
   
   PressureMode m_mode;
   float m_sea_level_pressure;
@@ -77,6 +159,8 @@ private:
   std::int16_t m_mb;
   std::int16_t m_mc;
   std::int16_t m_md;
+  std::uint16_t m_last_temperature;
+  std::chrono::time_point<std::chrono::steady_clock> m_last_temperature_timestamp;
   
 };
 

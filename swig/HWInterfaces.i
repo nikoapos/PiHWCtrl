@@ -1,5 +1,7 @@
 %module(package="PiHWCtrl", directors="1") HWInterfaces
 
+%include <std_shared_ptr.i>
+        
 %{
 #include <PiHWCtrl/HWInterfaces/BinaryInput.h>
 %}
@@ -24,9 +26,11 @@
 %{
 #include <PiHWCtrl/HWInterfaces/AnalogInput.h>
 %}
-%feature("director") PiHWCtrl::AnalogInput;
+%feature("director") PiHWCtrl::AnalogInput<float>;
 %include PiHWCtrl/HWInterfaces/AnalogInput.h
+%template(FloatAnalogInput) PiHWCtrl::AnalogInput<float>;
 
+%shared_ptr(PiHWCtrl::Observer<bool>)
 %{
 #include <PiHWCtrl/HWInterfaces/Observer.h>
 %}
@@ -39,4 +43,5 @@
 %}
 %include PiHWCtrl/HWInterfaces/Observable.h
 %feature("director") PiHWCtrl::Observable<bool>;
+%feature("nodirector") PiHWCtrl::Observable<bool>::notifyObservers;
 %template(BoolObservable) PiHWCtrl::Observable<bool>;

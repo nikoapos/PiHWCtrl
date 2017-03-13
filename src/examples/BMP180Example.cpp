@@ -23,19 +23,33 @@
 #include <iostream>
 #include <PiHWCtrl/modules/BMP180.h>
 
+void print(std::uint16_t raw_temp, float temp, std::uint16_t raw_pres,
+           float pres, float alt) {
+  std::cout << "    Raw temperature: " << raw_temp << "\n";
+  std::cout << "        Temperature: " << temp << " C\n";
+  std::cout << "       Raw pressure: " << raw_pres << "\n";
+  std::cout << "           Pressure: " << pres << " hPa\n";
+  std::cout << "           Altitude: " << alt << " m\n";
+}
+
 int main() {
-  PiHWCtrl::BMP180 sensor {PiHWCtrl::BMP180::PressureMode::ULTRA_LOW_POWER};
   
-  sensor.calibrateSeaLevelPressure(480);
+  auto sensor = PiHWCtrl::BMP180::factory(PiHWCtrl::BMP180::PressureMode::ULTRA_HIGH_RESOLUTION);
   
-  std::cout << "The temperature is " << sensor.readTemperature() << " C\n";
-  std::cout << "The pressure is " << sensor.readPressure() << " hPa\n";
-  std::cout << "The altitude is " << sensor.readAltitude() << " m\n";
+  std::cout << "Getting the information using direct function calls:\n";
+  auto raw_temp = sensor->readRawTemperature();
+  auto temp = sensor->readTemperature();
+  auto raw_pres = sensor->readRawPressure();
+  auto pres = sensor->readPressure();
+  auto alt = sensor->readAltitude();
+  print(raw_temp, temp, raw_pres, pres, alt);
   
-  auto analog_input = sensor.temperatureAnalogInput();
-  std::cout << "Temperature from analog input is " << analog_input->readValue() << " C\n";
-  analog_input = sensor.pressureAnalogInput();
-  std::cout << "Pressure from analog input is " << analog_input->readValue() << " C\n";
-  analog_input = sensor.altitudeAnalogInput();
-  std::cout << "Altitude from analog input is " << analog_input->readValue() << " C\n";
+  std::cout << "Getting the information using the AnalogInputs:\n";
+  raw_temp = sensor->rawTemperatureAnalogInput()->readValue();
+  temp = sensor->temperatureAnalogInput()->readValue();
+  raw_pres = sensor->rawPressureAnalogInput()->readValue();
+  pres = sensor->pressureAnalogInput()->readValue();
+  alt = sensor->altitudeAnalogInput()->readValue();
+  print(raw_temp, temp, raw_pres, pres, alt);
+  
 }
