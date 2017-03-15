@@ -21,7 +21,13 @@
  */
 
 #include <iostream>
+#include <thread> // for std::this_thread
+#include <chrono> // for std::chrono_literals
 #include <PiHWCtrl/modules/BMP180.h>
+
+// We introduce the symbols from std::chrono_literals so we can write time
+// like 500ms (500 milliseconds)
+using namespace std::chrono_literals;
 
 void print(std::uint16_t raw_temp, float temp, std::uint16_t raw_pres,
            float pres, float alt) {
@@ -31,6 +37,19 @@ void print(std::uint16_t raw_temp, float temp, std::uint16_t raw_pres,
   std::cout << "           Pressure: " << pres << " hPa\n";
   std::cout << "           Altitude: " << alt << " m\n";
 }
+
+  
+template <typename T, typename Printer>
+struct PrinterUpdater : public PiHWCtrl::Observer<T> {
+  PrinterUpdater(T& var, Printer& printer) : var(var), printer(printer) {
+  }
+  void event(const T& value) override {
+    var = value;
+    printer.reprint();
+  }
+  T& var;
+  Printer& printer;
+};
 
 int main() {
   
@@ -51,5 +70,34 @@ int main() {
   pres = sensor->pressureAnalogInput()->readValue();
   alt = sensor->altitudeAnalogInput()->readValue();
   print(raw_temp, temp, raw_pres, pres, alt);
+  
+  struct ScreenPrinter {
+    ScreenPrinter() {
+      print();
+    }
+    void print() {
+      std::cout << raw_temp << ' ' << temp << ' ' << raw_pres << ' ' << pres << ' ' << alt << '\n';
+    }
+    void reprint() {
+      print();
+    }
+    std::uint16_t raw_temp;
+    float temp;
+    std::uint32_t raw_pres;
+    float pres;
+    float alt;
+  };
+  ScreenPrinter printer {};
+  auto screen_printer = std::make_shared<ScreenPrinter>();
+  
+  sensor->addRawTemperatureObserver(std::make_shared<PrinterUpdater<std::uint16_t, ScreenPrinter>>(printer.raw_temp, printer));
+  sensor->addTemperatureObserver(std::make_shared<PrinterUpdater<float, ScreenPrinter>>(printer.temp, printer));
+  sensor->addRawPressureObserver(std::make_shared<PrinterUpdater<std::uint32_t, ScreenPrinter>>(printer.raw_pres, printer));
+  sensor->addPressureObserver(std::make_shared<PrinterUpdater<float, ScreenPrinter>>(printer.pres, printer));
+  sensor->addAltitudeObserver(std::make_shared<PrinterUpdater<float, ScreenPrinter>>(printer.alt, printer));
+  
+  sensor->start();
+  
+  std::this_thread::sleep_for(10s);
   
 }

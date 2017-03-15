@@ -24,7 +24,7 @@
 #include <cmath>
 #include <mutex>
 #include <chrono> // for std::chrono_literals
-#include <thread> // for std::this_thread
+#include <thread>
 #include <map>
 #include <PiHWCtrl/i2c/I2CBus.h>
 #include <PiHWCtrl/i2c/exceptions.h>
@@ -178,6 +178,10 @@ std::unique_ptr<AnalogInput<std::uint16_t>> BMP180::rawTemperatureAnalogInput() 
   );
 }
 
+void BMP180::addRawTemperatureObserver(std::shared_ptr<Observer<std::uint16_t>> observer) {
+  m_raw_temperature_observable.addObserver(observer);
+}
+
 std::int32_t BMP180::computeB5(std::uint16_t ut) {
   std::int32_t x1 = ((ut - m_ac6) * m_ac5) >> 15;
   std::int32_t x2 = (m_mc << 11) / (x1 + m_md);
@@ -199,6 +203,10 @@ std::unique_ptr<AnalogInput<float>> BMP180::temperatureAnalogInput() {
   return std::make_unique<FunctionAnalogInput<float>>(
       [this] () { return this->readTemperature(); }
   );
+}
+
+void BMP180::addTemperatureObserver(std::shared_ptr<Observer<float>> observer) {
+  m_temperature_observable.addObserver(observer);
 }
 
 std::uint32_t BMP180::readRawPressure() {
@@ -237,6 +245,10 @@ std::unique_ptr<AnalogInput<std::uint16_t>> BMP180::rawPressureAnalogInput() {
   return std::make_unique<FunctionAnalogInput<std::uint16_t>>(
       [this] () { return this->readRawPressure(); }
   );
+}
+
+void BMP180::addRawPressureObserver(std::shared_ptr<Observer<std::uint32_t>> observer) {
+  m_raw_pressure_observable.addObserver(observer);
 }
 
 float BMP180::computeRealPressure(std::uint16_t ut, std::uint32_t up) {
@@ -280,16 +292,28 @@ std::unique_ptr<AnalogInput<float>> BMP180::pressureAnalogInput() {
   );
 }
 
-float BMP180::readAltitude() {
-  float pressure = readPressure();
+void BMP180::addPressureObserver(std::shared_ptr<Observer<float>> observer) {
+  m_pressure_observable.addObserver(observer);
+}
+
+float BMP180::computeAltitude(float pressure) {
   float ratio = pressure / m_sea_level_pressure;
   return 44330 * (1 - std::pow(ratio, 1./5.255));
+}
+
+float BMP180::readAltitude() {
+  float pressure = readPressure();
+  return computeAltitude(pressure);
 }
 
 std::unique_ptr<AnalogInput<float>> BMP180::altitudeAnalogInput() {
   return std::make_unique<FunctionAnalogInput<float>>(
       [this] () { return this->readAltitude(); }
   );
+}
+
+void BMP180::addAltitudeObserver(std::shared_ptr<Observer<float>> observer) {
+  m_altitude_observable.addObserver(observer);
 }
 
 float BMP180::getSeaLevelPressure() {
@@ -304,6 +328,48 @@ float BMP180::calibrateSeaLevelPressure(float altitude) {
   float pressure = readPressure();
   m_sea_level_pressure = pressure / std::pow(1 - altitude / 44330, 5.255);
   return m_sea_level_pressure;
+}
+
+void BMP180::start() {
+  if (m_observing) {
+    throw Exception() << "BMP180 already started";
+  }
+  m_observing = true;
+
+  auto measurement_task = [this]() {
+    while (m_observing) {
+      std::uint16_t ut = readRawTemperature();
+      m_raw_temperature_observable.createEvent(ut);
+      
+      std::int32_t b5 = computeB5(ut);
+      float temperature = computeRealTemperature(ut, b5);
+      m_temperature_observable.createEvent(temperature);
+      
+      std::uint32_t up = readRawPressure();
+      m_raw_pressure_observable.createEvent(up);
+      
+      float pressure = computeRealPressure(ut, up);
+      m_pressure_observable.createEvent(pressure);
+      
+      float altitude = computeAltitude(pressure);
+      m_altitude_observable.createEvent(altitude);
+    }
+    m_observing = true;
+  };
+  
+  std::thread t {measurement_task};
+  t.detach();
+}
+
+void BMP180::stop() {
+  if (m_observing)
+    // This will trigger the measuring thread to stop
+    m_observing = false;
+    // We have to wait until the thread signals that it stopped
+    while (!m_observing) {
+    }
+    // Now we can set again the flag to false
+    m_observing = false;
 }
 
 } // end of namespace PiHWCtrl

@@ -26,7 +26,10 @@
 #include <cstdint>
 #include <memory>
 #include <chrono>
+#include <mutex>
+#include <atomic>
 #include <PiHWCtrl/HWInterfaces/AnalogInput.h>
+#include <PiHWCtrl/utils/EncapsulatedObservable.h>
 
 namespace PiHWCtrl {
 
@@ -104,11 +107,17 @@ public:
   /// Returns an AnalogInput for accessing the uncompensated temperature
   std::unique_ptr<AnalogInput<std::uint16_t>> rawTemperatureAnalogInput();
   
+  /// Adds an observer which will be notified for uncompensated temperature values
+  void addRawTemperatureObserver(std::shared_ptr<Observer<std::uint16_t>> observer);
+  
   /// Returns the calibrated value of the temperature
   float readTemperature();
   
   /// Returns an AnalogInput for accessing the calibrated temperature
   std::unique_ptr<AnalogInput<float>> temperatureAnalogInput();
+  
+  /// Adds an observer which will be notified for calibrated temperature values
+  void addTemperatureObserver(std::shared_ptr<Observer<float>> observer);
   
   /// Returns the uncompensated value of the pressure
   std::uint32_t readRawPressure();
@@ -116,17 +125,26 @@ public:
   /// Returns an AnalogInput for accessing the uncompensated pressure
   std::unique_ptr<AnalogInput<std::uint16_t>> rawPressureAnalogInput();
   
+  /// Adds an observer which will be notified for uncompensated pressure values
+  void addRawPressureObserver(std::shared_ptr<Observer<std::uint32_t>> observer);
+  
   /// Returns the calibrated value of the pressure
   float readPressure();
   
   /// Returns an AnalogInput for accessing the calibrated pressure
   std::unique_ptr<AnalogInput<float>> pressureAnalogInput();
   
+  /// Adds an observer which will be notified for calibrated pressure values
+  void addPressureObserver(std::shared_ptr<Observer<float>> observer);
+  
   // Returns the computed altitude
   float readAltitude();
   
   /// Returns an AnalogInput for accessing the altitude
   std::unique_ptr<AnalogInput<float>> altitudeAnalogInput();
+  
+  /// Adds an observer which will be notified for altitude values
+  void addAltitudeObserver(std::shared_ptr<Observer<float>> observer);
   
   /// Returns the sea level pressure used for computing the altitude
   float getSeaLevelPressure();
@@ -138,6 +156,12 @@ public:
   /// given altitude
   float calibrateSeaLevelPressure(float altitude);
   
+  /// Start continuous measurement mode, which notifies the observers.
+  void start();
+  
+  /// Stop the continuous measurement mode
+  void stop();
+  
 private:
   
   BMP180(PressureMode mode, float sea_level_pressure);
@@ -145,6 +169,7 @@ private:
   std::int32_t computeB5(std::uint16_t ut);
   float computeRealTemperature(std::uint16_t ut, std::int32_t b5);
   float computeRealPressure(std::uint16_t ut, std::uint32_t up);
+  float computeAltitude(float pressure);
   
   PressureMode m_mode;
   float m_sea_level_pressure;
@@ -161,6 +186,13 @@ private:
   std::int16_t m_md;
   std::uint16_t m_last_temperature;
   std::chrono::time_point<std::chrono::steady_clock> m_last_temperature_timestamp;
+  EncapsulatedObservable<std::uint16_t> m_raw_temperature_observable;
+  EncapsulatedObservable<float> m_temperature_observable;
+  EncapsulatedObservable<std::uint32_t> m_raw_pressure_observable;
+  EncapsulatedObservable<float> m_pressure_observable;
+  EncapsulatedObservable<float> m_altitude_observable;
+  mutable std::mutex m_mutex;
+  std::atomic<bool> m_observing {false};
   
 };
 
