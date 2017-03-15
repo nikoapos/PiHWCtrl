@@ -241,8 +241,8 @@ std::uint32_t BMP180::readRawPressure() {
   return up;
 }
 
-std::unique_ptr<AnalogInput<std::uint16_t>> BMP180::rawPressureAnalogInput() {
-  return std::make_unique<FunctionAnalogInput<std::uint16_t>>(
+std::unique_ptr<AnalogInput<std::uint32_t>> BMP180::rawPressureAnalogInput() {
+  return std::make_unique<FunctionAnalogInput<std::uint32_t>>(
       [this] () { return this->readRawPressure(); }
   );
 }

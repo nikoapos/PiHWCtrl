@@ -123,7 +123,7 @@ public:
   std::uint32_t readRawPressure();
   
   /// Returns an AnalogInput for accessing the uncompensated pressure
-  std::unique_ptr<AnalogInput<std::uint16_t>> rawPressureAnalogInput();
+  std::unique_ptr<AnalogInput<std::uint32_t>> rawPressureAnalogInput();
   
   /// Adds an observer which will be notified for uncompensated pressure values
   void addRawPressureObserver(std::shared_ptr<Observer<std::uint32_t>> observer);
