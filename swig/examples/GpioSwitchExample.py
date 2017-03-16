@@ -23,9 +23,6 @@
 # control the output of the GPIO pins accessible via the 40 pin interface (GPIOs
 # 2-28) as ON (3.3 Volt) or OFF (GND).
 # 
-# Under the hood, this class uses the pigpio library, so any program using it
-# must be executed with root privileges (sudo).
-# 
 # Hardware implementation
 # -----------------------
 # Materials:
@@ -34,7 +31,7 @@
 #     here: http://www.evilmadscientist.com/2012/resistors-for-leds)
 # 
 # Connections:
-#   - Connect the GPIO-21 pin to the anode of the LED (longer leg)
+#   - Connect the GPIO-26 pin to the anode of the LED (longer leg)
 #   - Connect the cathode of the LED (shorter leg) to the one side of the
 #     resistor
 #   - Connect the other side of the resistor to the ground (GND)
@@ -44,10 +41,12 @@
 # 
 
 import time
-import PiHWCtrl
+from PiHWCtrl.gpio import GpioSwitch
 
-# Create an object for controlling the GPIO 21 output
-s = PiHWCtrl.PigpioSwitch(21)
+# Create an object for controlling the GPIO 26 output. This object implements
+# the PiHWCtrl::Switch interface, so it can be used with any function
+# expecting the interface.
+s = GpioSwitch(26)
 
 # Turn the switch ON and OFF 10 times
 for i in range(10):
