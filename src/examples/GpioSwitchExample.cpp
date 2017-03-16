@@ -37,7 +37,7 @@
  *     here: http://www.evilmadscientist.com/2012/resistors-for-leds)
  * 
  * Connections:
- *   - Connect the GPIO-21 pin to the anode of the LED (longer leg)
+ *   - Connect the GPIO-26 pin to the anode of the LED (longer leg)
  *   - Connect the cathode of the LED (shorter leg) to the one side of the
  *     resistor
  *   - Connect the other side of the resistor to the ground (GND)
@@ -56,10 +56,10 @@ using namespace std::chrono_literals;
 
 int main() {
   
-  // Create an object for controlling the GPIO 21 output. This object implements
+  // Create an object for controlling the GPIO 26 output. This object implements
   // the PiHWCtrl::Switch interface, so it can be used with any function
   // expecting the interface.
-  PiHWCtrl::GpioSwitch s {21};
+  PiHWCtrl::GpioSwitch s {26};
   
   // Turn the switch ON and OFF 10 times
   for (int i = 0; i < 10; ++i) {

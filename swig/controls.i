@@ -1,6 +1,6 @@
 %module(package="PiHWCtrl") controls
 
-%import HWInterfaces.i
+%include HWInterfaces.i
         
 %shared_ptr(PiHWCtrl::StateChangeFilter<bool>)
 %{
