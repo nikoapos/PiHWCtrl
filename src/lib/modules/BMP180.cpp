@@ -141,6 +141,8 @@ BMP180::~BMP180() {
 
 std::uint16_t BMP180::readRawTemperature() {
   
+  std::lock_guard<std::mutex> lock {m_mutex};
+  
   // IF we have done a measurement less than 1 second ago we do not repeat the
   // measurement and just return the same value
   auto now = std::chrono::steady_clock::now();
@@ -179,6 +181,7 @@ std::unique_ptr<AnalogInput<std::uint16_t>> BMP180::rawTemperatureAnalogInput() 
 }
 
 void BMP180::addRawTemperatureObserver(std::shared_ptr<Observer<std::uint16_t>> observer) {
+  std::lock_guard<std::mutex> lock {m_mutex};
   m_raw_temperature_observable.addObserver(observer);
 }
 
@@ -206,10 +209,12 @@ std::unique_ptr<AnalogInput<float>> BMP180::temperatureAnalogInput() {
 }
 
 void BMP180::addTemperatureObserver(std::shared_ptr<Observer<float>> observer) {
+  std::lock_guard<std::mutex> lock {m_mutex};
   m_temperature_observable.addObserver(observer);
 }
 
 std::uint32_t BMP180::readRawPressure() {
+  std::lock_guard<std::mutex> lock {m_mutex};
   
   // Get the mode info from the map
   auto& mode_info = mode_map.at(m_mode);
@@ -248,6 +253,7 @@ std::unique_ptr<AnalogInput<std::uint32_t>> BMP180::rawPressureAnalogInput() {
 }
 
 void BMP180::addRawPressureObserver(std::shared_ptr<Observer<std::uint32_t>> observer) {
+  std::lock_guard<std::mutex> lock {m_mutex};
   m_raw_pressure_observable.addObserver(observer);
 }
 
@@ -293,6 +299,7 @@ std::unique_ptr<AnalogInput<float>> BMP180::pressureAnalogInput() {
 }
 
 void BMP180::addPressureObserver(std::shared_ptr<Observer<float>> observer) {
+  std::lock_guard<std::mutex> lock {m_mutex};
   m_pressure_observable.addObserver(observer);
 }
 
@@ -313,6 +320,7 @@ std::unique_ptr<AnalogInput<float>> BMP180::altitudeAnalogInput() {
 }
 
 void BMP180::addAltitudeObserver(std::shared_ptr<Observer<float>> observer) {
+  std::lock_guard<std::mutex> lock {m_mutex};
   m_altitude_observable.addObserver(observer);
 }
 
@@ -339,20 +347,30 @@ void BMP180::start() {
   auto measurement_task = [this]() {
     while (m_observing) {
       std::uint16_t ut = readRawTemperature();
+      std::unique_lock<std::mutex> lock {m_mutex};
       m_raw_temperature_observable.createEvent(ut);
+      lock.unlock();
       
       std::int32_t b5 = computeB5(ut);
       float temperature = computeRealTemperature(ut, b5);
+      lock.lock();
       m_temperature_observable.createEvent(temperature);
+      lock.unlock();
       
       std::uint32_t up = readRawPressure();
+      lock.lock();
       m_raw_pressure_observable.createEvent(up);
+      lock.unlock();
       
       float pressure = computeRealPressure(ut, up);
+      lock.lock();
       m_pressure_observable.createEvent(pressure);
+      lock.unlock();
       
       float altitude = computeAltitude(pressure);
+      lock.lock();
       m_altitude_observable.createEvent(altitude);
+      lock.unlock();
     }
     m_observing = true;
   };

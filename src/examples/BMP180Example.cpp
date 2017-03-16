@@ -101,7 +101,7 @@ int main() {
   // If you know your exact altitude, you can use it to calibrate the sea level
   // pressure used for the altitude measurements. The BMP180 class provides a
   // method for retrieving the computed sea level pressure, so you can even use
-  // for implementing a weather station.
+  // it for implementing a weather station.
   //
   sensor->calibrateSeaLevelPressure(486);
   auto sea_pres = sensor->getSeaLevelPressure();
@@ -163,7 +163,7 @@ int main() {
   // the BMP180 class and call its start() method. This will put the class in
   // continuous measurement mode and it will notify the observers every time a
   // measurement is finished. You can always stop the measurements by calling
-  // the stop method().
+  // the stop() method.
   //
   // Note that the observer methods will be called in the measurements thread,
   // so if their actions are taking too long they will block the measurements.

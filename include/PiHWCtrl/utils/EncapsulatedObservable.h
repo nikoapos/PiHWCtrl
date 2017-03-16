@@ -33,7 +33,7 @@ class EncapsulatedObservable : public Observable<T> {
 public:
   
   void createEvent(const T& value) {
-    this->notifyObservers(value);
+    Observable<T>::notifyObservers(value);
   }
   
 };
