@@ -45,6 +45,7 @@
 # 
 
 import time
+import sys
 from PiHWCtrl.modules import BMP180
 from PiHWCtrl.modules import BMP180_factory
 from PiHWCtrl.HWInterfaces import FloatObserver
@@ -156,6 +157,7 @@ class ScreenPrinter:
         temp_str = temp_str[:4]
         alt_str = str(self.alt)
         print '  Temperature:', '{0: <5}'.format(temp_str), '  Altitude:', alt_str[:6], '         ',
+        sys.stdout.flush()
     def setTemperature(self, temp):
         self.temp = temp
         self.message()
