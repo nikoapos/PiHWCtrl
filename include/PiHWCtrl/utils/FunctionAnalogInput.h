@@ -28,16 +28,17 @@
 
 namespace PiHWCtrl {
 
-class FunctionAnalogInput : public AnalogInput {
+template <typename T>
+class FunctionAnalogInput : public AnalogInput<T> {
   
 public:
   
-  FunctionAnalogInput(std::function<float()> function) : m_function(function) {
+  FunctionAnalogInput(std::function<T()> function) : m_function(function) {
   }
 
   virtual ~FunctionAnalogInput() = default;
   
-  float readValue() override {
+  T readValue() override {
     return m_function();
   }
   

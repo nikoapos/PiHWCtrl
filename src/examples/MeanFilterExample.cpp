@@ -31,7 +31,7 @@
 using namespace std::chrono_literals;
 
 
-class NoisyInput : public PiHWCtrl::AnalogInput {
+class NoisyInput : public PiHWCtrl::AnalogInput<float> {
   
 public:
   

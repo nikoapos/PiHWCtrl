@@ -30,7 +30,7 @@
 namespace PiHWCtrl {
 
 PigpioBinaryInput::PigpioBinaryInput(int gpio) : m_gpio(gpio) {
-  GpioManager::getSingleton()->reserveGpio(m_gpio);
+  m_gpio_reservation = GpioManager::getSingleton()->reserveGpio(m_gpio);
   auto res = gpioSetMode(m_gpio, PI_INPUT);
   if (res == PI_BAD_GPIO) {
     throw BadGpioNumber(m_gpio);
@@ -41,37 +41,7 @@ PigpioBinaryInput::PigpioBinaryInput(int gpio) : m_gpio(gpio) {
   }
 }
 
-PigpioBinaryInput::PigpioBinaryInput(PigpioBinaryInput&& other) : m_gpio(other.m_gpio) {
-  // Make the other object to not have control of the GPIO
-  other.m_gpio = -1;
-}
-
-namespace {
-
-void cleanup(int gpio) {
-  if (gpio != -1) {
-    GpioManager::getSingleton()->releaseGpio(gpio);
-  }
-}
-
-} // end of anonymous namespace
-
-PigpioBinaryInput& PigpioBinaryInput::operator=(PigpioBinaryInput&& other) {
-  // We will stop using the current GPIO, so clean it up
-  cleanup(m_gpio);
-  // Now take over the GPIO of the other
-  m_gpio = other.m_gpio;
-  other.m_gpio = -1;
-}
-
-PigpioBinaryInput::~PigpioBinaryInput() {
-  cleanup(m_gpio);
-}
-
 bool PigpioBinaryInput::isOn() const {
-  if (m_gpio == -1) {
-    throw BadGpioNumber(m_gpio);
-  }
   return gpioRead(m_gpio);
 }
 

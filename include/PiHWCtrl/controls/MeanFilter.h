@@ -29,11 +29,11 @@
 
 namespace PiHWCtrl {
 
-class MeanFilter : public AnalogInput {
+class MeanFilter : public AnalogInput<float> {
   
 public:
   
-  MeanFilter(std::shared_ptr<AnalogInput> input, std::size_t buffer_size)
+  MeanFilter(std::shared_ptr<AnalogInput<float>> input, std::size_t buffer_size)
           : m_input(input), m_size(buffer_size), m_current(input->readValue()),
             m_buffer(buffer_size, m_current) {
   }
@@ -44,7 +44,7 @@ public:
 
 private:
   
-  std::shared_ptr<AnalogInput> m_input;
+  std::shared_ptr<AnalogInput<float>> m_input;
   std::size_t m_size;
   float m_current;
   std::vector<float> m_buffer;

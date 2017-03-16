@@ -29,7 +29,7 @@ namespace PiHWCtrl {
 
 PigpioPWM::PigpioPWM(int gpio, unsigned int frequency) : m_gpio(gpio) {
   // Reserve the GPIO so no other class can use it
-  GpioManager::getSingleton()->reserveGpio(m_gpio);
+  m_gpio_reservation = GpioManager::getSingleton()->reserveGpio(m_gpio);
   
   // First we set the PWM frequency
   auto res = gpioSetPWMfrequency(m_gpio, frequency);
@@ -79,8 +79,6 @@ void cleanup(int gpio) {
   if (gpio != -1) {
     // We turn off the PWM
     gpioPWM(gpio, 0);
-    // We release the GPIO
-    GpioManager::getSingleton()->releaseGpio(gpio);
   }
 }
 

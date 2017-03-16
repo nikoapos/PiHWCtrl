@@ -28,6 +28,7 @@
 #include <mutex>
 #include <array>
 #include <unistd.h> // for read() and write()
+#include <PiHWCtrl/utils/GpioManager.h>
 #include <PiHWCtrl/i2c/I2CTransaction.h>
 #include <PiHWCtrl/i2c/exceptions.h>
 
@@ -115,6 +116,8 @@ private:
   
   I2CBus();
   
+  std::unique_ptr<GpioManager::GpioReservation> m_sda_gpio_reservation;
+  std::unique_ptr<GpioManager::GpioReservation> m_scl_gpio_reservation;
   int m_bus_file;
   std::mutex m_bus_mutex;
 

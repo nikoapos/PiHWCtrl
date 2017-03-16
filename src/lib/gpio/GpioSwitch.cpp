@@ -16,29 +16,26 @@
  */
 
 /* 
- * @file utils/GpioManager.cpp
+ * @file GpioSwitch.cpp
  * @author nikoapos
  */
 
-#include <PiHWCtrl/HWInterfaces/exceptions.h>
-#include <PiHWCtrl/utils/GpioManager.h>
+#include <PiHWCtrl/utils/EventGenerator.h>
+#include <PiHWCtrl/gpio/GpioSwitch.h>
+#include <PiHWCtrl/gpio/exceptions.h>
 
 namespace PiHWCtrl {
 
-std::shared_ptr<GpioManager> GpioManager::getSingleton() {
-  static std::shared_ptr<GpioManager> singleton = std::shared_ptr<GpioManager>(new GpioManager{});
-  return singleton;
+GpioSwitch::GpioSwitch(int gpio) : m_gpio(gpio, Gpio::Mode::OUTPUT) {
 }
 
-auto GpioManager::reserveGpio(int gpio) -> std::unique_ptr<GpioReservation> {
-  if (gpio < 2 || gpio > 28) {
-    throw BadGpioNumber(gpio);
-  }
-  if (m_reserved_flags[gpio]) {
-    throw GpioAlreadyReserved(gpio);
-  }
-  m_reserved_flags[gpio] = true;
-  return std::make_unique<GpioReservation>(m_reserved_flags[gpio]);
+void GpioSwitch::set(bool value) {
+  m_gpio.setState(value);
+  notifyObservers(value);
+}
+
+bool GpioSwitch::isOn() const {
+  return m_gpio.getState();
 }
 
 } // end of namespace PiHWCtrl

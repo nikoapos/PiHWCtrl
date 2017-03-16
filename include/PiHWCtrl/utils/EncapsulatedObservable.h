@@ -16,29 +16,29 @@
  */
 
 /* 
- * @file utils/GpioManager.cpp
+ * @file EncapsulatedObservable.h
  * @author nikoapos
  */
 
-#include <PiHWCtrl/HWInterfaces/exceptions.h>
-#include <PiHWCtrl/utils/GpioManager.h>
+#ifndef PIHWCTRL_UTILS_ENCAPSULATEDOBSERVABLE_H
+#define PIHWCTRL_UTILS_ENCAPSULATEDOBSERVABLE_H
+
+#include <PiHWCtrl/HWInterfaces/Observable.h>
 
 namespace PiHWCtrl {
 
-std::shared_ptr<GpioManager> GpioManager::getSingleton() {
-  static std::shared_ptr<GpioManager> singleton = std::shared_ptr<GpioManager>(new GpioManager{});
-  return singleton;
+template <typename T>
+class EncapsulatedObservable : public Observable<T> {
+  
+public:
+  
+  void createEvent(const T& value) {
+    Observable<T>::notifyObservers(value);
+  }
+  
+};
+
 }
 
-auto GpioManager::reserveGpio(int gpio) -> std::unique_ptr<GpioReservation> {
-  if (gpio < 2 || gpio > 28) {
-    throw BadGpioNumber(gpio);
-  }
-  if (m_reserved_flags[gpio]) {
-    throw GpioAlreadyReserved(gpio);
-  }
-  m_reserved_flags[gpio] = true;
-  return std::make_unique<GpioReservation>(m_reserved_flags[gpio]);
-}
+#endif /* PIHWCTRL_UTILS_ENCAPSULATEDOBSERVABLE_H */
 
-} // end of namespace PiHWCtrl

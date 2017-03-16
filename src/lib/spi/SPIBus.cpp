@@ -74,9 +74,9 @@ struct SpiGpioManager {
   
   void reserveGpios() {
     if (m_device_count == 0) {
-      GpioManager::getSingleton()->reserveGpio(SPI_SCLK_GPIO);
-      GpioManager::getSingleton()->reserveGpio(SPI_MOSI_GPIO);
-      GpioManager::getSingleton()->reserveGpio(SPI_MISO_GPIO);
+      m_sclk = GpioManager::getSingleton()->reserveGpio(SPI_SCLK_GPIO);
+      m_mosi = GpioManager::getSingleton()->reserveGpio(SPI_MOSI_GPIO);
+      m_miso = GpioManager::getSingleton()->reserveGpio(SPI_MISO_GPIO);
     }
     ++m_device_count;
   }
@@ -84,13 +84,16 @@ struct SpiGpioManager {
   void releaseGpios() {
     --m_device_count;
     if (m_device_count == 0) {
-      GpioManager::getSingleton()->releaseGpio(SPI_SCLK_GPIO);
-      GpioManager::getSingleton()->releaseGpio(SPI_MOSI_GPIO);
-      GpioManager::getSingleton()->releaseGpio(SPI_MISO_GPIO);
+      m_sclk.reset();
+      m_mosi.reset();
+      m_miso.reset();
     }
   }
   
   int m_device_count = 0;
+  std::unique_ptr<GpioManager::GpioReservation> m_sclk;
+  std::unique_ptr<GpioManager::GpioReservation> m_mosi;
+  std::unique_ptr<GpioManager::GpioReservation> m_miso;
   
 };
 
@@ -104,7 +107,7 @@ SPIBus::SPIBus(Device device, Speed speed) : m_device(device) {
   
   // Reserve the SPI_CE GPIO for the given device
   auto& device_info = device_info_map.at(m_device);
-  GpioManager::getSingleton()->reserveGpio(device_info.gpio);
+  m_ce_gpio_reservation = GpioManager::getSingleton()->reserveGpio(device_info.gpio);
   
   // Open the file for using the bus
   m_bus_file = open(device_info.filename.c_str(), O_RDWR);
@@ -138,10 +141,6 @@ SPIBus::SPIBus(Device device, Speed speed) : m_device(device) {
 SPIBus::~SPIBus() {
   // Release the common SPI GPIOs
   spi_gpio_manager.releaseGpios();
-  
-  // Release the SPI_CE GPIO so other objects can use it
-  auto& device_info = device_info_map.at(m_device);
-  GpioManager::getSingleton()->releaseGpio(device_info.gpio);
   
   // Close the bus file
   close(m_bus_file);

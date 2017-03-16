@@ -24,13 +24,10 @@
  * Description
  * -----------
  * 
- * Simple example of how to use the PigpioSwitch class. This class implements
+ * Simple example of how to use the GpioSwitch class. This class implements
  * the PiHWCtrl::Switch interface and can be used to control the output of the
  * GPIO pins accessible via the 40 pin interface (GPIOs 2-28) as ON (3.3 Volt)
  * or OFF (GND).
- * 
- * Under the hood, this class uses the pigpio library, so any program using it
- * must be executed with root privileges (sudo).
  * 
  * Hardware implementation
  * -----------------------
@@ -51,7 +48,7 @@
 
 #include <thread> // for std::this_thread
 #include <chrono> // for std::chronoe_literals
-#include <PiHWCtrl/pigpio/PigpioSwitch.h> // for PigpioSwitch
+#include <PiHWCtrl/gpio/GpioSwitch.h> // for GpioSwitch
 
 // We introduce the symbols from std::chrono_literals so we can write time
 // like 500ms (500 milliseconds)
@@ -62,7 +59,7 @@ int main() {
   // Create an object for controlling the GPIO 21 output. This object implements
   // the PiHWCtrl::Switch interface, so it can be used with any function
   // expecting the interface.
-  PiHWCtrl::PigpioSwitch s {21};
+  PiHWCtrl::GpioSwitch s {21};
   
   // Turn the switch ON and OFF 10 times
   for (int i = 0; i < 10; ++i) {

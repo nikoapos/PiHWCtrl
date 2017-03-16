@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <sys/ioctl.h> // For ioctl()
 #include <linux/spi/spidev.h>
+#include <PiHWCtrl/utils/GpioManager.h>
 #include <PiHWCtrl/spi/exceptions.h>
 
 namespace PiHWCtrl {
@@ -119,6 +120,7 @@ public:
   
 private:
   
+  std::unique_ptr<GpioManager::GpioReservation> m_ce_gpio_reservation;
   Device m_device;
   int m_bus_file;
   std::uint16_t m_delay_usecs;

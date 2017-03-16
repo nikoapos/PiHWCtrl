@@ -16,29 +16,28 @@
  */
 
 /* 
- * @file utils/GpioManager.cpp
+ * @file exceptions.h
  * @author nikoapos
  */
 
+#ifndef PIHWCTRL_MODULES_EXCEPTIONS_H
+#define PIHWCTRL_MODULES_EXCEPTIONS_H
+
 #include <PiHWCtrl/HWInterfaces/exceptions.h>
-#include <PiHWCtrl/utils/GpioManager.h>
 
 namespace PiHWCtrl {
 
-std::shared_ptr<GpioManager> GpioManager::getSingleton() {
-  static std::shared_ptr<GpioManager> singleton = std::shared_ptr<GpioManager>(new GpioManager{});
-  return singleton;
-}
-
-auto GpioManager::reserveGpio(int gpio) -> std::unique_ptr<GpioReservation> {
-  if (gpio < 2 || gpio > 28) {
-    throw BadGpioNumber(gpio);
+class ModuleAlreadyInUse : public Exception {
+public:
+  ModuleAlreadyInUse(std::string module_name) : module_name(module_name) {
+    appendMessage("Module ");
+    appendMessage(module_name);
+    appendMessage(" is already in use");
   }
-  if (m_reserved_flags[gpio]) {
-    throw GpioAlreadyReserved(gpio);
-  }
-  m_reserved_flags[gpio] = true;
-  return std::make_unique<GpioReservation>(m_reserved_flags[gpio]);
-}
+  std::string module_name;
+};
 
 } // end of namespace PiHWCtrl
+
+#endif /* PIHWCTRL_MODULES_EXCEPTIONS_H */
+

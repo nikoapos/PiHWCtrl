@@ -32,13 +32,13 @@ class GpioManager {
   
 public:
   
+  class GpioReservation;
+  
   static std::shared_ptr<GpioManager> getSingleton();
   
   virtual ~GpioManager() = default;
   
-  void reserveGpio(int gpio);
-  
-  void releaseGpio(int gpio);
+  std::unique_ptr<GpioReservation> reserveGpio(int gpio);
   
 private:
   
@@ -46,6 +46,29 @@ private:
   
   std::array<bool, 29> m_reserved_flags;
   
+};
+
+class GpioManager::GpioReservation {
+  
+public:
+
+  GpioReservation(bool& flag) : m_flag(flag) { }
+
+  // We do not want to allow to copy or move the reservation. Its lifetime should
+  // be controlled by the unique_ptr returned by the reserveGpio().
+  GpioReservation(const GpioReservation&) = delete;
+  GpioReservation& operator=(const GpioReservation&) = delete;
+  GpioReservation(GpioReservation&&) = delete;
+  GpioReservation& operator=(GpioReservation&&) = delete;
+
+  ~GpioReservation() {
+    m_flag.get() = false;
+  }
+
+private:
+
+  std::reference_wrapper<bool> m_flag;
+
 };
 
 } // end of namespace PiHWCtrl

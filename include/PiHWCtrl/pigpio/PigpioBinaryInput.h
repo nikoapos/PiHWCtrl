@@ -24,6 +24,7 @@
 #define PIHWCTRL_PIGPIOBINARYINPUT_H
 
 #include <PiHWCtrl/HWInterfaces/BinaryInput.h>
+#include <PiHWCtrl/utils/GpioManager.h>
 #include <PiHWCtrl/pigpio/SmartPigpio.h>
 
 namespace PiHWCtrl {
@@ -75,8 +76,8 @@ public:
   PigpioBinaryInput& operator=(const PigpioBinaryInput& right) = delete;
   
   // Moving is OK. The old object will not manage the GPIO any more.
-  PigpioBinaryInput(PigpioBinaryInput&& other);
-  PigpioBinaryInput& operator=(PigpioBinaryInput&& other);
+  PigpioBinaryInput(PigpioBinaryInput&& other) = default;
+  PigpioBinaryInput& operator=(PigpioBinaryInput&& other) = default;
   
   /**
    * @brief Destructor of the PigpioBinaryInput
@@ -85,7 +86,7 @@ public:
    * After the destructor is called the GPIO reserved by it is released and it
    * can be used by other PiHWCtrl objects.
    */
-  virtual ~PigpioBinaryInput();
+  virtual ~PigpioBinaryInput() = default;
   
   /// Returns true if the input is ON (as described at the class documentation)
   bool isOn() const override;
@@ -96,6 +97,7 @@ private:
   // We keep a pointer to the SmartPigpio singleton to guarantee that it is
   // initialized and not deleted for the lifetime of the object
   std::shared_ptr<SmartPigpio> m_smart_pigpio = SmartPigpio::getSingleton();
+  std::unique_ptr<GpioManager::GpioReservation> m_gpio_reservation;
 
 };
 
