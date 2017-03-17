@@ -31,9 +31,9 @@
 %feature("director") PiHWCtrl::AnalogInput<std::uint32_t>;
 %feature("director") PiHWCtrl::AnalogInput<float>;
 %include PiHWCtrl/HWInterfaces/AnalogInput.h
-%template(UInt16AnalogInput) PiHWCtrl::AnalogInput<std::uint16_t>;
-%template(UInt32AnalogInput) PiHWCtrl::AnalogInput<std::uint32_t>;
-%template(FloatAnalogInput) PiHWCtrl::AnalogInput<float>;
+%template(AnalogInputUInt16) PiHWCtrl::AnalogInput<std::uint16_t>;
+%template(AnalogInputUInt32) PiHWCtrl::AnalogInput<std::uint32_t>;
+%template(AnalogInputFloat) PiHWCtrl::AnalogInput<float>;
 
 %shared_ptr(PiHWCtrl::Observer<bool>)
 %shared_ptr(PiHWCtrl::Observer<std::uint16_t>)
@@ -47,10 +47,10 @@
 %feature("director") PiHWCtrl::Observer<std::uint32_t>;
 %feature("director") PiHWCtrl::Observer<float>;
 %include PiHWCtrl/HWInterfaces/Observer.h
-%template(BoolObserver) PiHWCtrl::Observer<bool>;
-%template(UInt16Observer) PiHWCtrl::Observer<std::uint16_t>;
-%template(UInt32Observer) PiHWCtrl::Observer<std::uint32_t>;
-%template(FloatObserver) PiHWCtrl::Observer<float>;
+%template(ObserverBool) PiHWCtrl::Observer<bool>;
+%template(ObserverUInt16) PiHWCtrl::Observer<std::uint16_t>;
+%template(ObserverUInt32) PiHWCtrl::Observer<std::uint32_t>;
+%template(ObserverFloat) PiHWCtrl::Observer<float>;
 
 %{
 #include <PiHWCtrl/HWInterfaces/Observable.h>
@@ -64,7 +64,7 @@
 %feature("nodirector") PiHWCtrl::Observable<std::uint32_t>::notifyObservers;
 %feature("nodirector") PiHWCtrl::Observable<float>::notifyObservers;
 %include PiHWCtrl/HWInterfaces/Observable.h
-%template(BoolObservable) PiHWCtrl::Observable<bool>;
-%template(UInt16Observable) PiHWCtrl::Observable<std::uint16_t>;
-%template(UInt32Observable) PiHWCtrl::Observable<std::uint32_t>;
-%template(FloatObservable) PiHWCtrl::Observable<float>;
+%template(ObservableBool) PiHWCtrl::Observable<bool>;
+%template(ObservableUInt16) PiHWCtrl::Observable<std::uint16_t>;
+%template(ObservableUInt32) PiHWCtrl::Observable<std::uint32_t>;
+%template(ObservableFloat) PiHWCtrl::Observable<float>;

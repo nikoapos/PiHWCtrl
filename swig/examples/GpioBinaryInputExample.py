@@ -46,8 +46,8 @@
 
 import time
 from PiHWCtrl.gpio import GpioBinaryInput
-from PiHWCtrl.HWInterfaces import BoolObserver
-from PiHWCtrl.controls import BoolStateChangeFilter
+from PiHWCtrl.HWInterfaces import ObserverBool
+from PiHWCtrl.controls import StateChangeFilterBool
 
 # Create an object for getting binary input from the GPIO 21. This object
 # implements the PiHWCtrl::BinaryInput interface, so it can be used with any
@@ -69,13 +69,13 @@ if bin_in.isOff():
 # Getting the state of the pin using events
 #
 
-# The GpioBinaryInput class implements the BoolObservable interface, which
+# The GpioBinaryInput class implements the ObservableBool interface, which
 # means you can add observers that will be notified for the state of the pin.
 # The following class is an implementation of such an observer, which will
 # print on the screen the message ON or OFF.
-class ScreenPrinter(BoolObserver):
+class ScreenPrinter(ObserverBool):
     def __init__(self):
-        BoolObserver.__init__(self)
+        ObserverBool.__init__(self)
     def event(self, value):
         if value:
             print 'ON'
@@ -89,10 +89,10 @@ screen_printer = ScreenPrinter()
 # The GpioBinaryInput will generate events with its state continuously. That
 # means that if we add the screen_printer observer directly we will get
 # repetitive messages on the screen. To solve this problem you can wrap the
-# observer with the BoolStateChangeFilter decorator. This decorator will filter
+# observer with the StateChangeFilterBool decorator. This decorator will filter
 # out any events for which the state is not changed and will forward only
 # the events that the switch turns from OFF to ON and from ON to OFF.
-wrapped_observer = BoolStateChangeFilter(screen_printer)
+wrapped_observer = StateChangeFilterBool(screen_printer)
 
 # Add the observer to the input, so it will be notified for its events
 bin_in.addObserver(wrapped_observer)

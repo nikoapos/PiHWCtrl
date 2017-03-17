@@ -7,4 +7,4 @@
 #include <PiHWCtrl/controls/StateChangeFilter.h>
 %}
 %include PiHWCtrl/controls/StateChangeFilter.h
-%template(BoolStateChangeFilter) PiHWCtrl::StateChangeFilter<bool>;
+%template(StateChangeFilterBool) PiHWCtrl::StateChangeFilter<bool>;

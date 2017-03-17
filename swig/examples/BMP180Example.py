@@ -48,7 +48,7 @@ import time
 import sys
 from PiHWCtrl.modules import BMP180
 from PiHWCtrl.modules import BMP180_factory
-from PiHWCtrl.HWInterfaces import FloatObserver
+from PiHWCtrl.HWInterfaces import ObserverFloat
 
 #
 # Create an object for controlling the BMP180. The first parameter of the
@@ -172,9 +172,9 @@ printer = ScreenPrinter()
 # The PrinterUpdater class is the observer implementation which will be
 # registered to the BMP180. Internally it keeps a function to which it will
 # redirect the value when an event occurs.
-class PrinterUpdater(FloatObserver):
+class PrinterUpdater(ObserverFloat):
     def __init__(self, func):
-        FloatObserver.__init__(self)
+        ObserverFloat.__init__(self)
         self.func = func
     def event(self, value):
         self.func(value)
