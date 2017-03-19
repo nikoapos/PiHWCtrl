@@ -135,6 +135,9 @@ BMP180::BMP180(PressureMode mode, float sea_level_pressure)
 }
 
 BMP180::~BMP180() {
+  // Stop any threads generating events for the BMP180
+  stop();
+  // Release the instance_exists flag so new classes can be created
   std::lock_guard<std::mutex> lock {instance_exists_mutex};
   instance_exists = false;
 }
