@@ -148,14 +148,14 @@ int main() {
   //
   std::cout << "\nGetting the information using the AnalogInputs:\n";
   auto raw_temp_ai = sensor->rawTemperatureAnalogInput();
-  print("Raw temperature", *raw_temp_ai);
   auto temp_ai = sensor->temperatureAnalogInput();
-  print("Temperature", *temp_ai);
   auto raw_pres_ai = sensor->rawPressureAnalogInput();
-  print("Raw pressure", *raw_pres_ai);
   auto pres_ai = sensor->pressureAnalogInput();
-  print("Pressure", *pres_ai);
   auto alt_ai = sensor->altitudeAnalogInput();
+  print("Raw temperature", *raw_temp_ai);
+  print("Temperature", *temp_ai);
+  print("Raw pressure", *raw_pres_ai);
+  print("Pressure", *pres_ai);
   print("Altitude", *alt_ai);
   
   //

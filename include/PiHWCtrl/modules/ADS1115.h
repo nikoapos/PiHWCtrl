@@ -164,10 +164,19 @@ public:
    * @details
    * The ADS1115 class can use different gains for each differential input. The
    * gain values can be manually set by calling this method, to achieve the
-   * best sampling of an input of known range. If GAIN::auto is passed as
-   * parameter, the automatic gain mode is enabled for the specific input, which
-   * will change gains automatically to try to keep the input in the [50%, 90%]
-   * range of the full scale.
+   * best sampling of an input of known range. The full range of each gain is
+   * the following:
+   * 
+   * - G_2_3 - ±6.144V
+   * - G_1   - ±4.096V
+   * - G_2   - ±2.048V
+   * - G_4   - ±1.024V
+   * - G_8   - ±0.512V
+   * - G_16  - ±0.256V
+   * 
+   * If GAIN::auto is passed as parameter, the automatic gain mode is enabled
+   * for the specific input, which will change gains automatically to try to
+   * keep the input in the [50%, 90%] range of the full scale.
    * 
    * @param input
    *    The differential input to set the gain for
