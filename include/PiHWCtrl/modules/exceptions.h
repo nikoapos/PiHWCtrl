@@ -37,6 +37,9 @@ public:
   std::string module_name;
 };
 
+class InvalidState : public Exception {
+};
+
 } // end of namespace PiHWCtrl
 
 #endif /* PIHWCTRL_MODULES_EXCEPTIONS_H */

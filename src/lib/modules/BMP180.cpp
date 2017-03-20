@@ -383,7 +383,7 @@ void BMP180::start() {
 }
 
 void BMP180::stop() {
-  if (m_observing)
+  if (m_observing) {
     // This will trigger the measuring thread to stop
     m_observing = false;
     // We have to wait until the thread signals that it stopped
@@ -391,6 +391,7 @@ void BMP180::stop() {
     }
     // Now we can set again the flag to false
     m_observing = false;
+  }
 }
 
 } // end of namespace PiHWCtrl
