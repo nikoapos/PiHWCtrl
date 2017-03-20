@@ -60,7 +60,7 @@
  *   - An ADS1115 breakout
  *   - Two potentiometers
  * 
- * Connection:
+ * Connections:
  *   - Connect the GND of the ADS1115 to one of the GND pins
  *   - Connect the VIN of the ADS1115 to one of the 3.3V pins
  *   - Connect the SCL of the ADS1115 to the SCL pin (pin 5 / GPIO 3)
@@ -151,8 +151,8 @@ int main() {
   
   std::cout << "\nGetting the measurements using direct function calls:\n";
   auto in0 = sensor->readConversion(PiHWCtrl::ADS1115::Input::AIN0_GND);
-  auto in2 = sensor->readConversion(PiHWCtrl::ADS1115::Input::AIN2_AIN3);
-  std::cout << "   IN2-IN3: " << in2 << " V\n";
+  auto in2_in3 = sensor->readConversion(PiHWCtrl::ADS1115::Input::AIN2_AIN3);
+  std::cout << "   IN2-IN3: " << in2_in3 << " V\n";
   std::cout << "       IN0: " << in0 << " V\n";
   
   //
