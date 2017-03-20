@@ -49,8 +49,9 @@ void print(const std::string& name, PiHWCtrl::AnalogInput<T>& analog_input) {
 int main() {
   
   auto sensor = PiHWCtrl::ADS1115::factory(PiHWCtrl::ADS1115::AddressPin::GND,
-                                           PiHWCtrl::ADS1115::Gain::G_1,
                                            PiHWCtrl::ADS1115::DataRate::DR_32_SPS);
+  
+  sensor->setGain(PiHWCtrl::ADS1115::Input::AIN0_GND, PiHWCtrl::ADS1115::Gain::G_4);
   
   std::cout << "\nGetting the measurements using direct function calls:\n";
   auto in0 = sensor->readConversion(PiHWCtrl::ADS1115::Input::AIN0_GND);

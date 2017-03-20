@@ -192,12 +192,12 @@ std::uint16_t addCmd(std::uint16_t reg, std::uint16_t mask, std::uint16_t comman
 
 } // end of anonymous namespace
 
-std::unique_ptr<ADS1115> ADS1115::factory(AddressPin addr, Gain gain, DataRate data_rate) {
-  return std::unique_ptr<ADS1115>{new ADS1115{addr, gain, data_rate}};
+std::unique_ptr<ADS1115> ADS1115::factory(AddressPin addr, DataRate data_rate) {
+  return std::unique_ptr<ADS1115>{new ADS1115{addr, data_rate}};
 }
 
-ADS1115::ADS1115(AddressPin addr, Gain gain, DataRate data_rate)
-        : m_addr(address_map.at(addr).address), m_gain(gain), m_data_rate(data_rate) {
+ADS1115::ADS1115(AddressPin addr, DataRate data_rate)
+        : m_addr(address_map.at(addr).address), m_data_rate(data_rate) {
   
   // Check that there is no other instance controlling the device
   std::unique_lock<std::mutex> lock {instance_exists_mutex};
@@ -208,15 +208,19 @@ ADS1115::ADS1115(AddressPin addr, Gain gain, DataRate data_rate)
   }
   lock.unlock();
   
+  // Initialize the gain of each input to the default (2)
+  for (auto& pair : input_map) {
+    m_input_gain_map[pair.first] = ADS1115::Gain::G_2;
+  }
+  
   // Get the I2C bus
   auto bus = I2CBus::getSingleton();
   
   // Start a transaction that will lock the I2C bus from others until we are done
   auto transaction = bus->startTransaction(m_addr);
   
-  // We set the gain to the requested value
+  // We construct the command to initialize the ADS1115
   std::uint16_t cmd = 0x0000;
-  cmd |= gain_map.at(m_gain).command;
   
   // We set the mode to single shot
   cmd |= CMD_MODE_SINGLE_SHOT;
@@ -226,6 +230,7 @@ ADS1115::ADS1115(AddressPin addr, Gain gain, DataRate data_rate)
   cmd |= data_rate_map.at(m_data_rate).command;
   
   // Set everything else to the default values
+  cmd |= CMD_GAIN_2;
   cmd |= CMD_MUX_0_1;
   cmd |= CMD_COMP_MODE_TRADITIONAL;
   cmd |= CMD_COMP_POL_ACTIVE_LOW;
@@ -241,6 +246,10 @@ ADS1115::~ADS1115() {
   // Release the instance_exists flag so new classes can be created
   std::lock_guard<std::mutex> lock {instance_exists_mutex};
   instance_exist_map.at(m_addr) = false;
+}
+
+void ADS1115::setGain(Input input, Gain gain) {
+  m_input_gain_map.at(input) = gain;
 }
 
 float ADS1115::readConversion(Input input) {
@@ -262,6 +271,8 @@ float ADS1115::readConversion(Input input) {
     std::uint16_t cmd = bus->readRegister<std::uint16_t>(REG_CONFIG);
     // Update the input to read
     cmd = addCmd(cmd, CMD_MUX_MASK, input_map.at(input).command);
+    // Set the gain based on the input requested
+    cmd = addCmd(cmd, CMD_GAIN_MASK, gain_map.at(m_input_gain_map.at(input)).command);
     // Set the bit for triggering the single conversion
     cmd = addCmd(cmd, CMD_CONV_MASK, CMD_CONV_BEGIN_SINGLE);
     // Send the command
@@ -287,7 +298,7 @@ float ADS1115::readConversion(Input input) {
   }
   
   // Convert the value to voltage, according the gain and the full scale
-  float voltage = (gain_map.at(m_gain).full_scale / 0x7FFF) * value;
+  float voltage = (gain_map.at(m_input_gain_map.at(input)).full_scale / 0x7FFF) * value;
   
   return voltage;
   
@@ -303,7 +314,7 @@ void ADS1115::addConversionObserver(Input input, std::shared_ptr<Observer<float>
   std::lock_guard<std::mutex> lock {m_mutex};
   // We use the [] and not the at() method so the observable will be created the
   // first time an observer is registered for this input
-  m_observable_map[input].addObserver(observer);
+  m_input_observable_map[input].addObserver(observer);
 }
 
 void ADS1115::start() {
@@ -314,7 +325,7 @@ void ADS1115::start() {
 
   auto measurement_task = [this]() {
     while (m_observing) {
-      for (auto& pair : m_observable_map) {
+      for (auto& pair : m_input_observable_map) {
         float value = readConversion(pair.first);
         std::unique_lock<std::mutex> lock {m_mutex};
         pair.second.createEvent(value);

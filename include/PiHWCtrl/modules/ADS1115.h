@@ -98,10 +98,11 @@ public:
   };
   
   static std::unique_ptr<ADS1115> factory(AddressPin addr=AddressPin::GND,
-                                          Gain gain=Gain::G_2,
                                           DataRate data_rate=DataRate::DR_128_SPS);
   
   virtual ~ADS1115();
+  
+  void setGain(Input input, Gain gain);
   
   float readConversion(Input input);
   
@@ -115,14 +116,14 @@ public:
   
 private:
   
-  ADS1115(AddressPin addr, Gain gain, DataRate data_rate);
+  ADS1115(AddressPin addr, DataRate data_rate);
   
   std::uint8_t m_addr;
   mutable std::mutex m_mutex;
-  Gain m_gain;
+  std::map<Input, Gain> m_input_gain_map;
   Mode m_mode;
   DataRate m_data_rate;
-  std::map<Input, EncapsulatedObservable<float>> m_observable_map;
+  std::map<Input, EncapsulatedObservable<float>> m_input_observable_map;
   std::atomic<bool> m_observing {false};
   
 }; // end of class ADS1115
