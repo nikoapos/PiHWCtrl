@@ -151,8 +151,6 @@ class ScreenPrinter:
         self.alt = 0
     def message(self):
         print '\r', # Go to the beginning of the line
-#        print '  Temperature:', self.temp, '  Altitude:', self.alt,
-#        print '  Temperature: %20s  Altitude $20s' % (self.temp, self.alt)
         temp_str = str(self.temp)
         temp_str = temp_str[:4]
         alt_str = str(self.alt)
