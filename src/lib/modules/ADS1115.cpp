@@ -25,6 +25,7 @@
 #include <map>
 #include <chrono> // for std::chrono_literals
 #include <thread>
+#include <cmath>
 
 #include <PiHWCtrl/i2c/I2CBus.h>
 #include <PiHWCtrl/i2c/exceptions.h>
@@ -321,12 +322,12 @@ float ADS1115::readConversion(Input input) {
       auto current_gain = m_input_gain_map.at(input);
       auto& gain_info = gain_map.at(current_gain);
       // Check if we need to increase the gain
-      if (voltage < gain_info.full_scale * 0.45 && current_gain != gain_info.next) {
+      if (std::abs(voltage) < gain_info.full_scale * 0.45 && current_gain != gain_info.next) {
         m_input_gain_map.at(input) = gain_info.next;
         done = false;
       }
       // Check if we need to decrease the gain
-      if (voltage > gain_info.full_scale * 0.9 && current_gain != gain_info.previous) {
+      if (std::abs(voltage) > gain_info.full_scale * 0.9 && current_gain != gain_info.previous) {
         m_input_gain_map.at(input) = gain_info.previous;
         done = false;
       }
@@ -350,20 +351,34 @@ void ADS1115::addConversionObserver(Input input, std::shared_ptr<Observer<float>
   m_input_observable_map[input].addObserver(observer);
 }
 
-void ADS1115::start() {
+void ADS1115::start(bool force, int power_down_ms) {
+  // First check that we are in single shot mode
+  if (m_mode == Mode::CONTINUOUS) {
+    throw InvalidState() << "ADS1115: cannot call start() when in CONTINUOUS mode";
+  }
+  
   if (m_observing) {
     throw Exception() << "ADS1115 already started";
   }
   m_observing = true;
 
-  auto measurement_task = [this]() {
+  auto measurement_task = [this, force, power_down_ms]() {
     while (m_observing) {
-      for (auto& pair : m_input_observable_map) {
-        float value = readConversion(pair.first);
+      for (auto& pair : input_map) {
         std::unique_lock<std::mutex> lock {m_mutex};
-        pair.second.createEvent(value);
+        auto obs = m_input_observable_map.find(pair.first);
         lock.unlock();
+        float value = 0;
+        if (obs != m_input_observable_map.end() || force) {
+          value = readConversion(pair.first);
+        }
+        if (obs != m_input_observable_map.end()) {
+          lock.lock();
+          obs->second.createEvent(value);
+          lock.unlock();
+        }
       }
+      std::this_thread::sleep_for(std::chrono::milliseconds(power_down_ms));
     }
     m_observing = true;
   };
