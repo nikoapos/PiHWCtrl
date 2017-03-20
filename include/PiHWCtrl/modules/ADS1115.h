@@ -64,7 +64,8 @@ public:
     G_2,     ///< Gain   2,  full-scale ±2.048V
     G_4,     ///< Gain   4,  full-scale ±1.024V
     G_8,     ///< Gain   8,  full-scale ±0.512V
-    G_16     ///< Gain  16,  full-scale ±0.256V
+    G_16,    ///< Gain  16,  full-scale ±0.256V
+    AUTO
   };
   
   /// The available modes
@@ -121,6 +122,7 @@ private:
   std::uint8_t m_addr;
   mutable std::mutex m_mutex;
   std::map<Input, Gain> m_input_gain_map;
+  std::map<Input, bool> m_input_auto_gain_flag_map;
   Mode m_mode;
   DataRate m_data_rate;
   std::map<Input, EncapsulatedObservable<float>> m_input_observable_map;

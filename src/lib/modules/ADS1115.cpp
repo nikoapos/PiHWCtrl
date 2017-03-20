@@ -123,21 +123,23 @@ std::map<ADS1115::AddressPin, AddressPinInfo> address_map {
 };
 
 struct GainInfo {
-  GainInfo(float gain, float full_scale, std::uint16_t command)
-          : gain(gain), full_scale(full_scale), command(command) { }
+  GainInfo(float gain, float full_scale, std::uint16_t command, ADS1115::Gain previous, ADS1115::Gain next)
+          : gain(gain), full_scale(full_scale), command(command), previous(previous), next(next) { }
   float gain;
   float full_scale;
   std::uint16_t command;
+  ADS1115::Gain previous;
+  ADS1115::Gain next;
 };
 
 std::map<ADS1115::Gain, GainInfo> gain_map {
-  //                              gain   full-scale  command 
-  {ADS1115::Gain::G_2_3, GainInfo{2./3., 6.144,      CMD_GAIN_2_3}},
-  {ADS1115::Gain::G_1,   GainInfo{   1., 4.096,      CMD_GAIN_1}},
-  {ADS1115::Gain::G_2,   GainInfo{   2., 2.048,      CMD_GAIN_2}},
-  {ADS1115::Gain::G_4,   GainInfo{   4., 1.024,      CMD_GAIN_4}},
-  {ADS1115::Gain::G_8,   GainInfo{   8., 0.512,      CMD_GAIN_8}},
-  {ADS1115::Gain::G_16,  GainInfo{  16., 0.256,      CMD_GAIN_16}}
+  //                              gain   full-scale  command       auto mode previous    auto mode next
+  {ADS1115::Gain::G_2_3, GainInfo{2./3., 6.144,      CMD_GAIN_2_3, ADS1115::Gain::G_2_3, ADS1115::Gain::G_1}},
+  {ADS1115::Gain::G_1,   GainInfo{   1., 4.096,      CMD_GAIN_1,   ADS1115::Gain::G_2_3, ADS1115::Gain::G_2}},
+  {ADS1115::Gain::G_2,   GainInfo{   2., 2.048,      CMD_GAIN_2,   ADS1115::Gain::G_1,   ADS1115::Gain::G_4}},
+  {ADS1115::Gain::G_4,   GainInfo{   4., 1.024,      CMD_GAIN_4,   ADS1115::Gain::G_2,   ADS1115::Gain::G_8}},
+  {ADS1115::Gain::G_8,   GainInfo{   8., 0.512,      CMD_GAIN_8,   ADS1115::Gain::G_4,   ADS1115::Gain::G_16}},
+  {ADS1115::Gain::G_16,  GainInfo{  16., 0.256,      CMD_GAIN_16,  ADS1115::Gain::G_8,   ADS1115::Gain::G_16}}
 };
 
 struct InputInfo {
@@ -208,11 +210,6 @@ ADS1115::ADS1115(AddressPin addr, DataRate data_rate)
   }
   lock.unlock();
   
-  // Initialize the gain of each input to the default (2)
-  for (auto& pair : input_map) {
-    m_input_gain_map[pair.first] = ADS1115::Gain::G_2;
-  }
-  
   // Get the I2C bus
   auto bus = I2CBus::getSingleton();
   
@@ -222,6 +219,14 @@ ADS1115::ADS1115(AddressPin addr, DataRate data_rate)
   // We construct the command to initialize the ADS1115
   std::uint16_t cmd = 0x0000;
   
+  // Initialize the gain of each input to the default (2) and set that the gain
+  // is automatically adjusted
+  for (auto& pair : input_map) {
+    m_input_gain_map[pair.first] = ADS1115::Gain::G_2;
+    m_input_auto_gain_flag_map[pair.first] = true;
+  }
+  cmd |= CMD_GAIN_2;
+  
   // We set the mode to single shot
   cmd |= CMD_MODE_SINGLE_SHOT;
   m_mode = Mode::SINGLE_SHOT;
@@ -230,7 +235,6 @@ ADS1115::ADS1115(AddressPin addr, DataRate data_rate)
   cmd |= data_rate_map.at(m_data_rate).command;
   
   // Set everything else to the default values
-  cmd |= CMD_GAIN_2;
   cmd |= CMD_MUX_0_1;
   cmd |= CMD_COMP_MODE_TRADITIONAL;
   cmd |= CMD_COMP_POL_ACTIVE_LOW;
@@ -249,7 +253,12 @@ ADS1115::~ADS1115() {
 }
 
 void ADS1115::setGain(Input input, Gain gain) {
-  m_input_gain_map.at(input) = gain;
+  if (gain == Gain::AUTO) {
+    m_input_auto_gain_flag_map.at(input) = true;
+  } else {
+    m_input_auto_gain_flag_map.at(input) = false;
+    m_input_gain_map.at(input) = gain;
+  }
 }
 
 float ADS1115::readConversion(Input input) {
@@ -263,42 +272,66 @@ float ADS1115::readConversion(Input input) {
   // Get the I2C bus
   auto bus = I2CBus::getSingleton();
   
-  // Send the command for triggering the measurement. We do this in a scope to
-  // don't block the I2C bus while waiting for the measurement to be done.
-  {
-    auto transaction = bus->startTransaction(m_addr);
-    // Read the current config register
-    std::uint16_t cmd = bus->readRegister<std::uint16_t>(REG_CONFIG);
-    // Update the input to read
-    cmd = addCmd(cmd, CMD_MUX_MASK, input_map.at(input).command);
-    // Set the gain based on the input requested
-    cmd = addCmd(cmd, CMD_GAIN_MASK, gain_map.at(m_input_gain_map.at(input)).command);
-    // Set the bit for triggering the single conversion
-    cmd = addCmd(cmd, CMD_CONV_MASK, CMD_CONV_BEGIN_SINGLE);
-    // Send the command
-    bus->writeRegister(REG_CONFIG, cmd, true);
-  }
   
-  // Now we sleep according the data rate, until the conversion finishes
-  std::this_thread::sleep_for(data_rate_map.at(m_data_rate).wait_time);
-  
-  // Wait until the conversion bit of the config register indicates that the
-  // measurement is done
-  {
-    auto transaction = bus->startTransaction(m_addr);
-    for (std::uint16_t conf = 0x0000; conf & CMD_CONV_MASK == 0; conf=bus->readRegister<std::int16_t>(REG_CONFIG)) {
+  // We read the input in a loop, which is repeated when we are in auto gain
+  // mode to adjust the gain automatically.
+  float voltage;
+  bool done = false;
+  while (!done) {
+    // Send the command for triggering the measurement. We do this in a scope to
+    // don't block the I2C bus while waiting for the measurement to be done. 
+    {
+      auto transaction = bus->startTransaction(m_addr);
+      // Read the current config register
+      std::uint16_t cmd = bus->readRegister<std::uint16_t>(REG_CONFIG);
+      // Update the input to read
+      cmd = addCmd(cmd, CMD_MUX_MASK, input_map.at(input).command);
+      // Set the gain based on the input requested
+      cmd = addCmd(cmd, CMD_GAIN_MASK, gain_map.at(m_input_gain_map.at(input)).command);
+      // Set the bit for triggering the single conversion
+      cmd = addCmd(cmd, CMD_CONV_MASK, CMD_CONV_BEGIN_SINGLE);
+      // Send the command
+      bus->writeRegister(REG_CONFIG, cmd, true);
+    }
+
+    // Now we sleep according the data rate, until the conversion finishes
+    std::this_thread::sleep_for(data_rate_map.at(m_data_rate).wait_time);
+
+    // Wait until the conversion bit of the config register indicates that the
+    // measurement is done
+    {
+      auto transaction = bus->startTransaction(m_addr);
+      for (std::uint16_t conf = 0x0000; conf & CMD_CONV_MASK == 0; conf=bus->readRegister<std::int16_t>(REG_CONFIG)) {
+      }
+    }
+
+    // Read the conversion register
+    std::int16_t value;
+    {
+      auto transaction = bus->startTransaction(m_addr);
+      value = bus->readRegister<std::int16_t>(REG_CONVERSION);
+    }
+
+    // Convert the value to voltage, according the gain and the full scale
+    voltage = (gain_map.at(m_input_gain_map.at(input)).full_scale / 0x7FFF) * value;
+    
+    // We handle automatic gain mode
+    done = true;
+    if (m_input_auto_gain_flag_map.at(input)) {
+      auto current_gain = m_input_gain_map.at(input);
+      auto& gain_info = gain_map.at(current_gain);
+      // Check if we need to increase the gain
+      if (voltage < gain_info.full_scale * 0.45 && current_gain != gain_info.next) {
+        m_input_gain_map.at(input) = gain_info.next;
+        done = false;
+      }
+      // Check if we need to decrease the gain
+      if (voltage > gain_info.full_scale * 0.9 && current_gain != gain_info.previous) {
+        m_input_gain_map.at(input) = gain_info.previous;
+        done = false;
+      }
     }
   }
-  
-  // Read the conversion register
-  std::int16_t value;
-  {
-    auto transaction = bus->startTransaction(m_addr);
-    value = bus->readRegister<std::int16_t>(REG_CONVERSION);
-  }
-  
-  // Convert the value to voltage, according the gain and the full scale
-  float voltage = (gain_map.at(m_input_gain_map.at(input)).full_scale / 0x7FFF) * value;
   
   return voltage;
   
