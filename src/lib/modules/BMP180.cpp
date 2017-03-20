@@ -135,6 +135,9 @@ BMP180::BMP180(PressureMode mode, float sea_level_pressure)
 }
 
 BMP180::~BMP180() {
+  // Stop any threads generating events for the BMP180
+  stop();
+  // Release the instance_exists flag so new classes can be created
   std::lock_guard<std::mutex> lock {instance_exists_mutex};
   instance_exists = false;
 }
@@ -380,7 +383,7 @@ void BMP180::start() {
 }
 
 void BMP180::stop() {
-  if (m_observing)
+  if (m_observing) {
     // This will trigger the measuring thread to stop
     m_observing = false;
     // We have to wait until the thread signals that it stopped
@@ -388,6 +391,7 @@ void BMP180::stop() {
     }
     // Now we can set again the flag to false
     m_observing = false;
+  }
 }
 
 } // end of namespace PiHWCtrl

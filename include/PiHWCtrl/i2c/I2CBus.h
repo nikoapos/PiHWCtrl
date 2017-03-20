@@ -88,7 +88,7 @@ public:
   
   
   template <typename T>
-  void writeRegister(std::uint8_t register_address, T value) {
+  void writeRegister(std::uint8_t register_address, T value, bool invert=false) {
     
     // First check that the mutex is locked. If it is not means that we are not in
     // a valid transaction.
@@ -102,7 +102,11 @@ public:
     buffer[0] = register_address;
     std::uint8_t* value_ptr = reinterpret_cast<std::uint8_t*>(&value);
     for (int i = 0; i < sizeof(T); ++i) {
-      buffer[i+1] = *(value_ptr + i);
+      if (invert) {
+        buffer[i+1] = *(value_ptr + sizeof(T)-i-1);
+      } else {
+        buffer[i+1] = *(value_ptr + i);
+      }
     }
     
     // Write the message to the bus

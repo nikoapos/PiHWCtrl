@@ -44,6 +44,7 @@ The `modules` package contains classes for controlling the different peripheral
 modules connected to the GPIO pins.
 
 - `BMP180` : Pressure, temperature and altitude sensor
+- `ADS1115` : Analog to digital converter (ADC)
 
 controls
 --------
