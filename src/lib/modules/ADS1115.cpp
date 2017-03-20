@@ -351,7 +351,7 @@ void ADS1115::addConversionObserver(Input input, std::shared_ptr<Observer<float>
   m_input_observable_map[input].addObserver(observer);
 }
 
-void ADS1115::start(bool force, int power_down_ms) {
+void ADS1115::start(int power_down_ms) {
   // First check that we are in single shot mode
   if (m_mode == Mode::CONTINUOUS) {
     throw InvalidState() << "ADS1115: cannot call start() when in CONTINUOUS mode";
@@ -362,21 +362,13 @@ void ADS1115::start(bool force, int power_down_ms) {
   }
   m_observing = true;
 
-  auto measurement_task = [this, force, power_down_ms]() {
+  auto measurement_task = [this, power_down_ms]() {
     while (m_observing) {
-      for (auto& pair : input_map) {
+      for (auto& pair : m_input_observable_map) {
+        float value = readConversion(pair.first);
         std::unique_lock<std::mutex> lock {m_mutex};
-        auto obs = m_input_observable_map.find(pair.first);
+        pair.second.createEvent(value);
         lock.unlock();
-        float value = 0;
-        if (obs != m_input_observable_map.end() || force) {
-          value = readConversion(pair.first);
-        }
-        if (obs != m_input_observable_map.end()) {
-          lock.lock();
-          obs->second.createEvent(value);
-          lock.unlock();
-        }
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(power_down_ms));
     }

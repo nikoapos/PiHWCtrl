@@ -193,19 +193,15 @@ public:
    * This mode will continuously check for which inputs have been registered
    * observers, it will perform the measurements and will notify the observers.
    * 
-   * The parameter force controls which measurements are performed. When false,
-   * only the measurements for which observers have been registered will be
-   * performed. This provides the optimal sampling speed. When true, all input
-   * measurements will be performed, even if there are no observers. This allows
-   * to trigger the hardware comparator events for all inputs, but will
-   * considerably slow down the total sampling rate.
-   * 
    * The parameter power_down_ms will can be used for applications that high
    * sampling rate is not required. The device will be put in power down mode
    * for this number of milliseconds every time a set of measurements is
    * performed. This can be used to limit the current consumption of the device.
+   * 
+   * @param power_down_ms
+   *    The time in milliseconds to power down after each measurements cycle
    */
-  void start(bool force=false, int power_down_ms=0);
+  void start(int power_down_ms=0);
   
   /// Stop the continuous measurement mode
   void stop();
