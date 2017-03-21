@@ -90,7 +90,7 @@ void printAnalogInput(PiHWCtrl::AnalogInput<float>& input) {
 int main() {
   
   //
-  // Create an object for controlling the BMP180. We will use the GPIO 21 to
+  // Create an object for controlling the HCSR04. We will use the GPIO 21 to
   // trigger the measurements, so we create a GpioSwitch object to controll it,
   // and the GPIO 26 for measuring the echo duration, so we create a
   // GpioBinaryInput.
