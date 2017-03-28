@@ -24,13 +24,12 @@
 #include <thread>
 #include <map>
 #include <cmath>
+#include <functional>
 
 #include <PiHWCtrl/i2c/I2CBus.h>
 #include <PiHWCtrl/i2c/exceptions.h>
 #include <PiHWCtrl/modules/PCA9685.h>
 #include <PiHWCtrl/modules/exceptions.h>
-
-#include <iostream>
 
 // We introduce the symbols from std::chrono_literals so we can write time
 // like 500ms (500 milliseconds)
@@ -59,6 +58,30 @@ constexpr std::uint16_t CMD_LED_FULL_OFF = 0x1000;
 std::mutex instance_exists_mutex;
 
 std::map<std::uint8_t, bool> instance_exist_map {
+};
+
+class LedPwm : public PWM {
+  
+public:
+  
+  LedPwm(PCA9685& device, int led) : m_device(device), m_led(led) {
+  }
+
+  virtual ~LedPwm() = default;
+  
+  void setDutyCycle(float duty_cycle) override {
+    m_device.get().setDutyCycle(m_led, duty_cycle);
+  }
+  
+  float getDutyCycle() override {
+    m_device.get().getDutyCycle(m_led);
+  }
+
+private:
+  
+  std::reference_wrapper<PCA9685> m_device;
+  int m_led;
+  
 };
 
 } // end of anonymous namespace
@@ -172,9 +195,6 @@ float PCA9685::getDutyCycle(int led) {
   std::uint16_t on = bus->readRegister<std::uint16_t>(led_on_reg, true);
   std::uint16_t off = bus->readRegister<std::uint16_t>(led_off_reg, true);
   
-  std::cout << std::hex << (int)led_on_reg << ' ' << (int)led_off_reg << '\n';
-  std::cout << std::hex << on << ' ' << off << '\n';
-  
   // Check if we have full ON or full OFF enabled
   if (off & CMD_LED_FULL_OFF) {
     return 0;
@@ -189,5 +209,9 @@ float PCA9685::getDutyCycle(int led) {
   return (off - on) / 4096.;
   
 } // end of getDutyCycle
+
+std::unique_ptr<PWM> PCA9685::getAsPWM(int led) {
+  return std::make_unique<LedPwm>(*this, led);
+}
 
 } // end of namespace PiHWCtrl

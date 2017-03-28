@@ -26,8 +26,7 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
-
-#include <>
+#include <PiHWCtrl/HWInterfaces/PWM.h>
 
 namespace PiHWCtrl {
 
@@ -42,6 +41,8 @@ public:
   void setDutyCycle(int led, float duty_cycle);
   
   float getDutyCycle(int led);
+  
+  std::unique_ptr<PWM> getAsPWM(int led);
   
 private:
   
