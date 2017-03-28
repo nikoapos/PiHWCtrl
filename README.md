@@ -46,6 +46,7 @@ modules connected to the GPIO pins.
 - `BMP180` : Pressure, temperature and altitude sensor
 - `ADS1115` : Analog to digital converter (ADC)
 - `HC-SR04` : Ultrasonic distance measurement sensor
+- `PCA9685` : 16 channel PWM controller
 
 controls
 --------
