@@ -71,7 +71,7 @@ public:
   
   
   template <typename T>
-  T readRegister(std::uint8_t register_address) {
+  T readRegister(std::uint8_t register_address, bool invert=false) {
     
     //Read the register as an array
     auto buffer = readRegisterAsArray<sizeof(T)>(register_address);
@@ -80,7 +80,11 @@ public:
     T result = 0;
     for (int i = 0; i < buffer.size(); ++i) {
       result = result << 8;
-      result |= buffer[i] & 0xFF;
+      if (invert) {
+        result |= buffer[buffer.size() - i - 1] & 0xFF;
+      } else {
+        result |= buffer[i] & 0xFF;
+      }
     }
     
     return result;
