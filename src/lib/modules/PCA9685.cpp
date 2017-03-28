@@ -142,17 +142,17 @@ PCA9685::~PCA9685() {
   instance_exist_map.at(m_address) = false;
 }
 
-void PCA9685::setDutyCycle(int led, float duty_cycle) {
+void PCA9685::setDutyCycle(int channel, float duty_cycle) {
   
-  if (led < 0 || led > 15) {
-    throw Exception() << "Invalid LED number " << led;
+  if (channel < 0 || channel > 15) {
+    throw Exception() << "Invalid channel number " << channel;
   }
   if (duty_cycle < 0 || duty_cycle > 1) {
     throw Exception() << "Invalid duty cycle " << duty_cycle;
   }
   
-  std::uint8_t led_on_reg = REG_LED_ON + led * LED_SHIFT;
-  std::uint8_t led_off_reg = REG_LED_OFF + led * LED_SHIFT;
+  std::uint8_t led_on_reg = REG_LED_ON + channel * LED_SHIFT;
+  std::uint8_t led_off_reg = REG_LED_OFF + channel * LED_SHIFT;
   
   std::uint16_t on = 0x0000;
   std::uint16_t off = 0x0000;
@@ -179,10 +179,10 @@ void PCA9685::setDutyCycle(int led, float duty_cycle) {
   
 } // end of setDutyCycle()
 
-float PCA9685::getDutyCycle(int led) {
+float PCA9685::getDutyCycle(int channel) {
   
-  std::uint8_t led_on_reg = REG_LED_ON + led * LED_SHIFT;
-  std::uint8_t led_off_reg = REG_LED_OFF + led * LED_SHIFT;
+  std::uint8_t led_on_reg = REG_LED_ON + channel * LED_SHIFT;
+  std::uint8_t led_off_reg = REG_LED_OFF + channel * LED_SHIFT;
   
   std::lock_guard<std::mutex> lock {m_mutex};
 
@@ -210,8 +210,8 @@ float PCA9685::getDutyCycle(int led) {
   
 } // end of getDutyCycle
 
-std::unique_ptr<PWM> PCA9685::getAsPWM(int led) {
-  return std::make_unique<LedPwm>(*this, led);
+std::unique_ptr<PWM> PCA9685::getAsPWM(int channel) {
+  return std::make_unique<LedPwm>(*this, channel);
 }
 
 } // end of namespace PiHWCtrl
