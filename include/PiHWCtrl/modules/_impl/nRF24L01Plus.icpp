@@ -1,0 +1,66 @@
+/*
+ * Copyright (C) 2017 nikoapos
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* 
+ * @file nRF24L01Plus.icpp
+ * @author nikoapos
+ */
+
+#include <chrono> // for std::chrono_literals
+#include <thread>
+
+#include <PiHWCtrl/modules/_impl/nRF24L01Plus_constants.h>
+
+// We introduce the symbols from std::chrono_literals so we can write time
+// like 500ms (500 milliseconds)
+using namespace std::chrono_literals;
+
+namespace PiHWCtrl {
+
+template <typename T>
+void nRF24L01Plus::transmit(const std::array<std::uint8_t, 5>& address,
+                            const T& message, bool enable_shockburst) {
+  
+  static_assert(sizeof(T) <= 32, "nRF24L01+ messages must be 32 bytes or less");
+  
+  using namespace PiHWCtrl::_nRF24L01Plus_impl;
+  
+  // Use the mutex to lock the class from other calls
+  std::lock_guard<std::mutex> lock {m_mutex};
+  
+  // Bring the device in standby mode
+  m_ce->turnOff();
+  
+  // Configure the device as a transmitter
+  auto conf = m_bus.readCommand<std::uint8_t>(SPI_CMD_R_REGISTER | REG_CONFIG);
+  conf = conf & (!CMD_PRIM_RX);
+  m_bus.writeCommand(SPI_CMD_W_REGISTER | REG_CONFIG, conf);
+  
+  // Set the address of the receiver
+  m_bus.writeCommand(SPI_CMD_W_REGISTER | REG_TX_ADDR, address);
+  
+  // Write the payload data
+  m_bus.writeCommand(SPI_CMD_W_TX_PAYLOAD, message);
+  
+  // Set the CE high to start the transmission
+  m_ce->turnOn();
+  std::this_thread::sleep_for(10us);
+  m_ce->turnOff();
+  
+}
+
+} // end of namespace PiHWCtrl

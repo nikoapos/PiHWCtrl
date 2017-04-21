@@ -47,6 +47,7 @@ modules connected to the GPIO pins.
 - `ADS1115` : Analog to digital converter (ADC)
 - `HC-SR04` : Ultrasonic distance measurement sensor
 - `PCA9685` : 16 channel PWM controller
+- `nRF24L01+` : Radio tranceiver
 
 controls
 --------

@@ -29,6 +29,7 @@
 #include <sys/ioctl.h> // For ioctl()
 #include <linux/spi/spidev.h>
 #include <PiHWCtrl/utils/GpioManager.h>
+#include <PiHWCtrl/utils/SerializationUtils.h>
 #include <PiHWCtrl/spi/exceptions.h>
 
 namespace PiHWCtrl {
@@ -82,20 +83,13 @@ public:
     
     // Construct the array to send to the bus
     std::array<std::uint8_t, sizeof(Transmit)> tx;
-    const std::uint8_t* value_ptr = reinterpret_cast<const std::uint8_t*>(&value);
-    for (int i = 0; i < sizeof(Transmit); ++i) {
-      tx[i] = *(value_ptr + i);
-    }
+    serializeObject(value, tx.begin());
     
     // Transmit the value and get the response as an array
     auto rx = transferArray(tx);
     
     // Convert the response to the correct type
-    Response result;
-    std::uint8_t* result_ptr = reinterpret_cast<std::uint8_t*>(&result);
-    for (int i = 0; i < sizeof(Response); ++i) {
-      *(result_ptr + i) = rx[i];
-    }
+    auto result = deserializeObject<Response>(rx.begin());
     
     return result;
   }
@@ -116,6 +110,45 @@ public:
     
     // Transmit the dummy array and return the result
     return transfer<T>(tx);
+  }
+  
+  void writeCommand(std::uint8_t command) {
+      transfer<std::uint8_t>(command);
+  }
+  
+  template <typename T>
+  void writeCommand(std::uint8_t command, const T& value) {
+    
+    // Construct the array to transfer. The first byte is the command and the
+    // rest the serialized object
+    std::array<std::uint8_t, sizeof(T) + 1> tx;
+    tx[0] = command;
+    serializeObject(value, tx.begin() + 1);
+    
+    // Transmit the array and ignore the results
+    transferArray(tx);
+    
+  }
+  
+  template <typename T>
+  T readCommand(std::uint8_t command) {
+    
+    // Construct the array to transfer. The first byte is the command and the
+    // rest is set to zeros
+    std::array<std::uint8_t, sizeof(T) + 1> tx;
+    for (auto& x : tx) {
+      x = 0;
+    }
+    tx[0] = command;
+    
+    // Transmit the array and get the response as an array
+    auto rx = transferArray(tx);
+    
+    // Convert the response to the correct type
+    auto result = deserializeObject<T>(rx.begin() + 1);
+    
+    return result;
+    
   }
   
 private:
